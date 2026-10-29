@@ -1,0 +1,132 @@
+"""Application settings loaded from environment variables and an optional .env file."""
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class MissingCredentialError(RuntimeError):
+    """Raised when a component needs a credential that is not configured."""
+
+
+class Settings(BaseSettings):
+    """Application settings.
+
+    Every field maps to an upper-case environment variable of the same name,
+    for example ``openai_api_key`` reads ``OPENAI_API_KEY``.
+    """
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    # LLM mode: "auto" uses OpenAI when OPENAI_API_KEY is set and the offline
+    # deterministic components otherwise. "offline" never calls a remote API.
+    llm_mode: Literal["auto", "openai", "offline"] = Field(default="auto")
+
+    # OpenAI
+    openai_api_key: str | None = Field(default=None)
+    openai_model: str = Field(default="gpt-4-turbo-preview")
+    openai_embedding_model: str = Field(default="text-embedding-3-large")
+    openai_embedding_dimensions: int = Field(default=3072)
+    openai_rpm: int = Field(default=10000, description="Requests per minute limit")
+
+    # Offline hashing embedder
+    hash_embedding_dimensions: int = Field(default=512)
+
+    # Google Gemini, used only by the optional vision service
+    google_api_key: str | None = Field(default=None)
+
+    # Qdrant: "local" stores vectors on disk through qdrant-client with no server
+    qdrant_mode: Literal["local", "server"] = Field(default="local")
+    qdrant_local_path: Path = Field(default=Path("data/qdrant_local"))
+    qdrant_host: str = Field(default="localhost")
+    qdrant_port: int = Field(default=6333)
+    qdrant_collection_name: str = Field(default="service_manuals")
+
+    # Neo4j knowledge graph, optional
+    graph_enabled: bool = Field(default=False)
+    neo4j_uri: str = Field(default="bolt://localhost:7687")
+    neo4j_user: str = Field(default="neo4j")
+    neo4j_password: str | None = Field(default=None)
+    neo4j_database: str = Field(default="neo4j")
+
+    # Document processing
+    chunk_size_tokens: int = Field(default=500)
+    chunk_overlap_tokens: int = Field(default=50)
+    min_chunk_size_tokens: int = Field(default=100)
+    max_chunk_size_tokens: int = Field(default=1000)
+
+    # Retrieval and fusion
+    vector_top_k: int = Field(default=10)
+    graph_top_k: int = Field(default=10)
+    final_top_k: int = Field(default=5)
+    vector_weight: float = Field(default=0.6)
+    graph_weight: float = Field(default=0.4)
+    rrf_k: int = Field(default=10)
+
+    # Comma-separated manufacturer names the supervisor agent recognizes in messages
+    known_oems: str = Field(default="ExampleCo")
+
+    # Paths
+    data_dir: Path = Field(default=Path("data"))
+    cache_dir: Path = Field(default=Path("data/cache"))
+
+    # Logging
+    log_level: str = Field(default="INFO")
+    log_file: Path | None = Field(default=None)
+    log_format: str = Field(default="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+    @field_validator("vector_weight", "graph_weight")
+    @classmethod
+    def validate_weights(cls, value: float) -> float:
+        if not 0 <= value <= 1:
+            raise ValueError("Weights must be between 0 and 1")
+        return value
+
+    @field_validator("log_level")
+    @classmethod
+    def validate_log_level(cls, value: str) -> str:
+        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        if value.upper() not in valid_levels:
+            raise ValueError(f"log_level must be one of {valid_levels}")
+        return value.upper()
+
+    @property
+    def use_openai(self) -> bool:
+        """True when components should call the OpenAI API."""
+        if self.llm_mode == "offline":
+            return False
+        if self.llm_mode == "openai":
+            return True
+        return bool(self.openai_api_key)
+
+    def require_openai_key(self) -> str:
+        """Return the OpenAI key or raise a clear error naming the variable."""
+        if not self.openai_api_key:
+            raise MissingCredentialError(
+                "OPENAI_API_KEY is not set. Set it in the environment or in .env, "
+                "or set LLM_MODE=offline to use the deterministic offline components."
+            )
+        return self.openai_api_key
+
+    def require_neo4j_password(self) -> str:
+        """Return the Neo4j password or raise a clear error naming the variable."""
+        if not self.neo4j_password:
+            raise MissingCredentialError(
+                "NEO4J_PASSWORD is not set. The knowledge graph is optional; "
+                "leave GRAPH_ENABLED=false to run with vector retrieval only."
+            )
+        return self.neo4j_password
+
+
+@lru_cache
+def get_settings() -> Settings:
+    """Return the cached settings instance."""
+    return Settings()
