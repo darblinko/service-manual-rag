@@ -1,5 +1,6 @@
 """Qdrant vector database operations, in server mode or embedded local mode."""
 
+import atexit
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -20,7 +21,11 @@ def _cached_client(mode: str, local_path: str, host: str, port: int) -> QdrantCl
     if mode == "local":
         Path(local_path).mkdir(parents=True, exist_ok=True)
         logger.info(f"Opening embedded Qdrant storage at {local_path}")
-        return QdrantClient(path=local_path)
+        client = QdrantClient(path=local_path)
+        # Release the storage lock before interpreter shutdown; the client's own
+        # finalizer fails if it first runs during shutdown.
+        atexit.register(client.close)
+        return client
     logger.info(f"Connecting to Qdrant server at {host}:{port}")
     return QdrantClient(host=host, port=port)
 
