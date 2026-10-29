@@ -1,0 +1,639 @@
+{
+  "golden_set": "sample_data/golden_set.json",
+  "embedding_model": "hashing-bigram-512",
+  "indexed_chunks": 55,
+  "final_top_k": 5,
+  "graph_enabled": false,
+  "judge": "lexical-offline",
+  "generator": "extractive-offline",
+  "total_questions": 15,
+  "failed_judgments": 0,
+  "aggregate": {
+    "context_relevance": 0.268,
+    "answer_relevance": 0.3931,
+    "faithfulness": 1.0,
+    "correctness": 0.4048,
+    "section_hit": 0.7333,
+    "reciprocal_rank": 0.55,
+    "model_precision": 0.5333
+  },
+  "by_category": {
+    "maintenance": {
+      "context_relevance": 0.3815,
+      "answer_relevance": 0.5085,
+      "faithfulness": 1.0,
+      "correctness": 0.5398,
+      "section_hit": 1.0,
+      "reciprocal_rank": 0.6667,
+      "model_precision": 0.6
+    },
+    "operation": {
+      "context_relevance": 0.2333,
+      "answer_relevance": 0.3833,
+      "faithfulness": 1.0,
+      "correctness": 0.4157,
+      "section_hit": 0.6667,
+      "reciprocal_rank": 0.4167,
+      "model_precision": 0.4
+    },
+    "safety": {
+      "context_relevance": 0.2929,
+      "answer_relevance": 0.4335,
+      "faithfulness": 1.0,
+      "correctness": 0.4215,
+      "section_hit": 1.0,
+      "reciprocal_rank": 0.8333,
+      "model_precision": 0.7333
+    },
+    "specifications": {
+      "context_relevance": 0.3,
+      "answer_relevance": 0.4762,
+      "faithfulness": 1.0,
+      "correctness": 0.5479,
+      "section_hit": 1.0,
+      "reciprocal_rank": 0.8333,
+      "model_precision": 0.5333
+    },
+    "troubleshooting": {
+      "context_relevance": 0.132,
+      "answer_relevance": 0.1638,
+      "faithfulness": 1.0,
+      "correctness": 0.099,
+      "section_hit": 0.0,
+      "reciprocal_rank": 0.0,
+      "model_precision": 0.4
+    }
+  },
+  "per_question": [
+    {
+      "id": "cp200-01",
+      "category": "safety",
+      "question": "Can I pick up the whole CP-200 pump and motor by the motor eyebolt, and what capacity hoist do I need?",
+      "answer": "The complete unit weighs 98 kg: the motor weighs 62 kg and the pump end weighs 36 kg. [Source 1] The motor eyebolt is rated for the motor alone. [Source 1] Do not lift the complete unit by the eyebolt, because the unit tilts toward the pump end and overloads the eyebolt. [Source 1]",
+      "retrieved": [
+        {
+          "model": "CP-200",
+          "section": "Lifting the pump unit"
+        },
+        {
+          "model": "CP-200",
+          "section": "Impeller and wear ring clearance"
+        },
+        {
+          "model": "CP-200",
+          "section": "Shutdown and frost protection"
+        },
+        {
+          "model": "EM-30",
+          "section": "Lifting and handling the motor"
+        },
+        {
+          "model": "CP-200",
+          "section": "Electrical connection and rotation check"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.26666666666666666,
+        "answer_relevance": 0.3333333333333333,
+        "faithfulness": 1.0,
+        "correctness": 0.4390243902439025,
+        "section_hit": 1.0,
+        "reciprocal_rank": 1.0,
+        "model_precision": 0.8
+      },
+      "errors": []
+    },
+    {
+      "id": "cp200-02",
+      "category": "specifications",
+      "question": "What do I torque the impeller nut and the casing bolts to on the CP-200?",
+      "answer": "| Impeller nut | M16 | 55 N\u00b7m | [Source 1] | Casing to adapter bolts (8 off) | M12 | 70 N\u00b7m | [Source 1] Tighten the casing bolts in a cross pattern in two stages, first to 35 N\u00b7m and then to 70 N\u00b7m. [Source 1]",
+      "retrieved": [
+        {
+          "model": "CP-200",
+          "section": "Fastener torque values"
+        },
+        {
+          "model": "CP-200",
+          "section": "Mechanical seal replacement"
+        },
+        {
+          "model": "EM-30",
+          "section": "Motor fails to start or hums"
+        },
+        {
+          "model": "CP-200",
+          "section": "Excessive noise and vibration"
+        },
+        {
+          "model": "EM-30",
+          "section": "Electrical rating plate data"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.4333333333333333,
+        "answer_relevance": 0.6666666666666666,
+        "faithfulness": 1.0,
+        "correctness": 0.744186046511628,
+        "section_hit": 1.0,
+        "reciprocal_rank": 1.0,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "cp200-03",
+      "category": "maintenance",
+      "question": "How often does the drive end motor bearing on the CP-200 need grease, and how much goes in?",
+      "answer": "Regrease the drive end bearing every 4,000 operating hours with 10 g of lithium complex NLGI 2 grease. [Source 2] Clean the grease nipple on the drive end bearing cover. [Source 2] | 4,000 operating hours | Regrease the motor drive end bearing | [Source 4]",
+      "retrieved": [
+        {
+          "model": "EM-30",
+          "section": "Bearing regreasing procedure"
+        },
+        {
+          "model": "CP-200",
+          "section": "Bearing lubrication interval"
+        },
+        {
+          "model": "EM-30",
+          "section": "Mechanical and bearing data"
+        },
+        {
+          "model": "CP-200",
+          "section": "Maintenance schedule"
+        },
+        {
+          "model": "EM-30",
+          "section": "Bearing replacement"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.45999999999999996,
+        "answer_relevance": 0.5,
+        "faithfulness": 1.0,
+        "correctness": 0.7272727272727272,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.5,
+        "model_precision": 0.4
+      },
+      "errors": []
+    },
+    {
+      "id": "cp200-04",
+      "category": "troubleshooting",
+      "question": "After the motor on the CP-200 was reconnected, the pump only makes about half its normal pressure. What is the likely cause and the fix?",
+      "answer": "Lifting the pump unit [Source 1] The complete unit weighs 98 kg: the motor weighs 62 kg and the pump end weighs 36 kg. [Source 1] Do not lift the motor with a pump, gearbox or baseplate attached. [Source 5]",
+      "retrieved": [
+        {
+          "model": "CP-200",
+          "section": "Lifting the pump unit"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Oil carryover in compressed air"
+        },
+        {
+          "model": "CP-200",
+          "section": "Shutdown and frost protection"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Tightening torques"
+        },
+        {
+          "model": "EM-30",
+          "section": "Lifting and handling the motor"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.18181818181818182,
+        "answer_relevance": 0.18181818181818182,
+        "faithfulness": 1.0,
+        "correctness": 0.16666666666666666,
+        "section_hit": 0.0,
+        "reciprocal_rank": 0.0,
+        "model_precision": 0.4
+      },
+      "errors": []
+    },
+    {
+      "id": "cp200-05",
+      "category": "operation",
+      "question": "What is the lowest flow the CP-200 can run at continuously, and how long can it run against a shut discharge valve?",
+      "answer": "| Rumbling and fluctuating pressure at low flow | Flow below the minimum continuous flow | Open the discharge valve or fit a bypass line | [Source 1] | Maximum time against a closed discharge valve | 2 minutes | [Source 4] Use the discharge valve to correct the flow. [Source 4]",
+      "retrieved": [
+        {
+          "model": "CP-200",
+          "section": "Excessive noise and vibration"
+        },
+        {
+          "model": "CP-200",
+          "section": "Priming and first start"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Safety valve function"
+        },
+        {
+          "model": "CP-200",
+          "section": "Operating limits"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Oil and oil filter change"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.3,
+        "answer_relevance": 0.4,
+        "faithfulness": 1.0,
+        "correctness": 0.5,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.25,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "rsc15-01",
+      "category": "safety",
+      "question": "I stopped and locked out the RSC-15, but the tank gauge still shows pressure after a couple of minutes. What do I do before opening the oil filler?",
+      "answer": "After a stop, the separator tank still holds compressed air and oil at up to 95 \u00b0C. [Source 1] If the gauge still shows pressure 2 minutes after the stop, the blowdown valve is faulty. [Source 1] Within 2 minutes, open the discharge valve slowly until the gauge shows the duty pressure. [Source 5]",
+      "retrieved": [
+        {
+          "model": "RSC-15",
+          "section": "Isolation and depressurization procedure"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Oil and oil filter change"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Lubricant and fill quantities"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Oil carryover in compressed air"
+        },
+        {
+          "model": "CP-200",
+          "section": "Priming and first start"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.36923076923076925,
+        "answer_relevance": 0.5384615384615384,
+        "faithfulness": 1.0,
+        "correctness": 0.4,
+        "section_hit": 1.0,
+        "reciprocal_rank": 1.0,
+        "model_precision": 0.8
+      },
+      "errors": []
+    },
+    {
+      "id": "rsc15-02",
+      "category": "specifications",
+      "question": "How much oil do I need for an oil change on the RSC-15, and what grade is it?",
+      "answer": "| Quantity for an oil change | 8.0 L | [Source 1] About 1.0 L of oil stays in the cooler, air end and hoses after draining, which is why an oil change takes 8.0 L. [Source 1] Oil and oil filter change [Source 2]",
+      "retrieved": [
+        {
+          "model": "RSC-15",
+          "section": "Lubricant and fill quantities"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Oil and oil filter change"
+        },
+        {
+          "model": "EM-30",
+          "section": "Bearing regreasing procedure"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Service interval table"
+        },
+        {
+          "model": "EM-30",
+          "section": "Mechanical and bearing data"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.26666666666666666,
+        "answer_relevance": 0.3333333333333333,
+        "faithfulness": 1.0,
+        "correctness": 0.7058823529411764,
+        "section_hit": 1.0,
+        "reciprocal_rank": 1.0,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "rsc15-03",
+      "category": "maintenance",
+      "question": "When I fit a new separator element in the RSC-15, where should the scavenge tube end sit and how tight do the cover bolts go?",
+      "answer": "Fit the new element with new gaskets. [Source 1] Set the scavenge tube so that its end is 5 mm above the bottom of the element. [Source 1] | Separator tank cover bolts (8 off) | M12 | 70 N\u00b7m | [Source 2]",
+      "retrieved": [
+        {
+          "model": "RSC-15",
+          "section": "Separator element replacement"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Tightening torques"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Controller alarm codes"
+        },
+        {
+          "model": "EM-30",
+          "section": "Terminal and fastener torques"
+        },
+        {
+          "model": "EM-30",
+          "section": "Bearing replacement"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.38461538461538464,
+        "answer_relevance": 0.6923076923076923,
+        "faithfulness": 1.0,
+        "correctness": 0.7894736842105262,
+        "section_hit": 1.0,
+        "reciprocal_rank": 1.0,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "rsc15-04",
+      "category": "troubleshooting",
+      "question": "The RSC-15 shut down and the display shows E06. What does that mean and what should I check?",
+      "answer": "Electrical connection and rotation check [Source 2] Do not check rotation with an empty casing. [Source 2] Test the voltage indicator on a known live source before and after the check. [Source 3]",
+      "retrieved": [
+        {
+          "model": "RSC-15",
+          "section": "Power supply and cable sizing"
+        },
+        {
+          "model": "CP-200",
+          "section": "Electrical connection and rotation check"
+        },
+        {
+          "model": "EM-30",
+          "section": "Electrical isolation and lockout"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Service interval table"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Compressor room and ventilation"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.11428571428571428,
+        "answer_relevance": 0.14285714285714285,
+        "faithfulness": 1.0,
+        "correctness": 0.07142857142857144,
+        "section_hit": 0.0,
+        "reciprocal_rank": 0.0,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "rsc15-05",
+      "category": "operation",
+      "question": "What load and unload pressures does the RSC-15 ship with, and at what pressure does it trip on high pressure?",
+      "answer": "Load and unload pressure settings [Source 1] | Load pressure | 7.0 bar | 5.0 to 7.5 bar | [Source 1] Enter the level 1 password, then edit parameter P02 for the load pressure and P03 for the unload pressure. [Source 1]",
+      "retrieved": [
+        {
+          "model": "RSC-15",
+          "section": "Load and unload pressure settings"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Controller start and stop sequence"
+        },
+        {
+          "model": "CP-200",
+          "section": "Shutdown and frost protection"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Oil and oil filter change"
+        },
+        {
+          "model": "CP-200",
+          "section": "Priming and first start"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.25,
+        "answer_relevance": 0.375,
+        "faithfulness": 1.0,
+        "correctness": 0.41379310344827586,
+        "section_hit": 1.0,
+        "reciprocal_rank": 1.0,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "em30-01",
+      "category": "safety",
+      "question": "The EM-30 runs from a variable speed drive. After isolating, how long do I wait before opening the terminal box, and which terminals do I prove dead?",
+      "answer": "| Earth terminal in the terminal box | M10 | 20 N\u00b7m | [Source 1] If a variable speed drive feeds the motor, wait at least 10 minutes after isolation for the drive DC link capacitors to discharge. [Source 2] On a variable speed drive the permitted frequency range is 5 to 50 Hz. [Source 5]",
+      "retrieved": [
+        {
+          "model": "EM-30",
+          "section": "Terminal and fastener torques"
+        },
+        {
+          "model": "EM-30",
+          "section": "Electrical isolation and lockout"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Isolation and depressurization procedure"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Tightening torques"
+        },
+        {
+          "model": "EM-30",
+          "section": "Starting methods and starting limits"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.24285714285714283,
+        "answer_relevance": 0.42857142857142855,
+        "faithfulness": 1.0,
+        "correctness": 0.425531914893617,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.5,
+        "model_precision": 0.6
+      },
+      "errors": []
+    },
+    {
+      "id": "em30-02",
+      "category": "specifications",
+      "question": "What full load current and speed should the EM-30 nameplate show?",
+      "answer": "| Method | Starting current | Starting torque | [Source 1] With star-delta starting, the load torque during acceleration must stay below 149 N\u00b7m. [Source 1] Set the star-delta timer to change over at about 95% of rated speed, typically after 6 to 10 seconds. [Source 1]",
+      "retrieved": [
+        {
+          "model": "EM-30",
+          "section": "Starting methods and starting limits"
+        },
+        {
+          "model": "EM-30",
+          "section": "Electrical rating plate data"
+        },
+        {
+          "model": "CP-200",
+          "section": "Electrical connection and rotation check"
+        },
+        {
+          "model": "CP-200",
+          "section": "Operating limits"
+        },
+        {
+          "model": "CP-200",
+          "section": "Low discharge pressure"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.2,
+        "answer_relevance": 0.42857142857142855,
+        "faithfulness": 1.0,
+        "correctness": 0.1935483870967742,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.5,
+        "model_precision": 0.4
+      },
+      "errors": []
+    },
+    {
+      "id": "em30-03",
+      "category": "maintenance",
+      "question": "How much grease goes into each EM-30 bearing, and how often?",
+      "answer": "| Bearing grease | Lithium complex NLGI 2 grease, mineral base oil | [Source 1] | Bearing | Type | Grease quantity | [Source 2] When cool, pack each bearing fully with grease and fill the bearing cover cavities to 50%. [Source 3]",
+      "retrieved": [
+        {
+          "model": "EM-30",
+          "section": "Mechanical and bearing data"
+        },
+        {
+          "model": "EM-30",
+          "section": "Bearing regreasing procedure"
+        },
+        {
+          "model": "EM-30",
+          "section": "Bearing replacement"
+        },
+        {
+          "model": "CP-200",
+          "section": "Bearing lubrication interval"
+        },
+        {
+          "model": "EM-30",
+          "section": "Inspection schedule"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.3,
+        "answer_relevance": 0.3333333333333333,
+        "faithfulness": 1.0,
+        "correctness": 0.10256410256410256,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.5,
+        "model_precision": 0.8
+      },
+      "errors": []
+    },
+    {
+      "id": "em30-04",
+      "category": "troubleshooting",
+      "question": "At what vibration level should I raise an alarm on the EM-30, and when do I shut it down?",
+      "answer": "Excessive noise and vibration [Source 2] Measure vibration as RMS velocity on the drive end bearing housing. [Source 2] | Vibration varies with bolt tightness | Loose foundation bolts | Tighten to 110 N\u00b7m | [Source 2]",
+      "retrieved": [
+        {
+          "model": "CP-200",
+          "section": "Low discharge pressure"
+        },
+        {
+          "model": "CP-200",
+          "section": "Excessive noise and vibration"
+        },
+        {
+          "model": "EM-30",
+          "section": "Motor fails to start or hums"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Lubricant and fill quantities"
+        },
+        {
+          "model": "RSC-15",
+          "section": "High discharge temperature"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.1,
+        "answer_relevance": 0.16666666666666666,
+        "faithfulness": 1.0,
+        "correctness": 0.058823529411764705,
+        "section_hit": 0.0,
+        "reciprocal_rank": 0.0,
+        "model_precision": 0.2
+      },
+      "errors": []
+    },
+    {
+      "id": "em30-05",
+      "category": "operation",
+      "question": "How many times an hour can I start the EM-30, and how many back to back starts are allowed?",
+      "answer": "Start the motor and stop it again within 1 second. [Source 1] Controller start and stop sequence [Source 2] The controller allows 10 motor starts per hour, at least 6 minutes apart. [Source 2]",
+      "retrieved": [
+        {
+          "model": "CP-200",
+          "section": "Electrical connection and rotation check"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Controller start and stop sequence"
+        },
+        {
+          "model": "RSC-15",
+          "section": "Safety valve function"
+        },
+        {
+          "model": "CP-200",
+          "section": "Lockout and tagout procedure"
+        },
+        {
+          "model": "CP-200",
+          "section": "Low discharge pressure"
+        }
+      ],
+      "scores": {
+        "context_relevance": 0.15,
+        "answer_relevance": 0.375,
+        "faithfulness": 1.0,
+        "correctness": 0.33333333333333337,
+        "section_hit": 0.0,
+        "reciprocal_rank": 0.0,
+        "model_precision": 0.0
+      },
+      "errors": []
+    }
+  ]
+}
