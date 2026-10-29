@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      LLM_MODE: offline
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked --extra dev --extra agents --extra ui
+      - run: uvx ruff@0.17.3 check .
+      - run: uvx ruff@0.17.3 format --check .
+      - run: uv run pytest -q
+      - name: Quickstart on the sample corpus
+        run: uv run service-manual-rag quickstart
+      - name: Offline baseline is reproducible
+        run: |
+          uv run service-manual-rag evaluate --output results/offline-baseline.json
+          git diff --exit-code results/offline-baseline.json
