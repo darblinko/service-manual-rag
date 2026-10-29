@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "repo": "service-manual-rag",
+    "revision": "50af7e3",
+    "measured": "2026-10-28"
+  },
+  "charts": [
+    {
+      "name": "baseline-summary",
+      "type": "stats",
+      "title": "Offline baseline on the sample corpus",
+      "subtitle": "Hashing embedder, extractive answers, lexical judge; no network",
+      "source": "results/offline-baseline.json (indexed_chunks, total_questions, aggregate.section_hit); sample_data/manuals/",
+      "alt": "3 synthetic manuals, 55 indexed chunks, 15 golden questions, expected section retrieved in the top 5 for 73% of questions.",
+      "tiles": [
+        {
+          "label": "Synthetic manuals",
+          "value": "3",
+          "note": "sample_data/manuals/"
+        },
+        {
+          "label": "Indexed chunks",
+          "value": "55",
+          "note": "level 4 only"
+        },
+        {
+          "label": "Golden questions",
+          "value": "15",
+          "note": "5 per manual"
+        },
+        {
+          "label": "Section hit at top 5",
+          "value": "73%",
+          "note": "offline baseline"
+        }
+      ]
+    },
+    {
+      "name": "offline-metrics",
+      "type": "hbar",
+      "title": "Offline evaluation metrics, mean over the golden set",
+      "subtitle": "15 questions; lexical proxies, not LLM-judged scores",
+      "source": "results/offline-baseline.json (aggregate)",
+      "format": "percent",
+      "max": 1,
+      "alt": "Section hit 73%, reciprocal rank 55%, model precision 53%, correctness 40%, answer relevance 39%, context relevance 27%, faithfulness 100%.",
+      "data": [
+        {
+          "label": "section_hit",
+          "value": 0.7333
+        },
+        {
+          "label": "reciprocal_rank",
+          "value": 0.55
+        },
+        {
+          "label": "model_precision",
+          "value": 0.5333
+        },
+        {
+          "label": "correctness (token F1)",
+          "value": 0.4048
+        },
+        {
+          "label": "answer_relevance",
+          "value": 0.3931
+        },
+        {
+          "label": "context_relevance",
+          "value": 0.268
+        },
+        {
+          "label": "faithfulness",
+          "value": 1.0,
+          "note": "1.0 by construction for extractive answers"
+        }
+      ]
+    },
+    {
+      "name": "section-hit-by-category",
+      "type": "hbar",
+      "title": "Expected section retrieved in the top 5, by question category",
+      "subtitle": "3 questions per category; offline hashing embedder",
+      "source": "results/offline-baseline.json (by_category.*.section_hit)",
+      "format": "percent",
+      "max": 1,
+      "alt": "safety 100%, specifications 100%, maintenance 100%, operation 67%, troubleshooting 0%.",
+      "data": [
+        {
+          "label": "safety",
+          "value": 1.0
+        },
+        {
+          "label": "specifications",
+          "value": 1.0
+        },
+        {
+          "label": "maintenance",
+          "value": 1.0
+        },
+        {
+          "label": "operation",
+          "value": 0.6667
+        },
+        {
+          "label": "troubleshooting",
+          "value": 0.0
+        }
+      ]
+    }
+  ]
+}

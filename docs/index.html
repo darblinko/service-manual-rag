@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>service-manual-rag</title>
+  <meta name="description" content="Retrieval-augmented question answering over industrial equipment service manuals, with hybrid vector and knowledge graph retrieval and an offline evaluation harness.">
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;600&display=swap">
+  <link rel="stylesheet" href="site.css">
+</head>
+<body>
+  <header class="site-bar">
+    <a href="https://darblinko.github.io/">Mitchell Foutz</a>
+    <a href="https://github.com/darblinko/service-manual-rag">Source on GitHub</a>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h1>service-manual-rag</h1>
+      <p class="lede">Answers technician questions from equipment service manuals with cited passages, using Qdrant vector search, optional Neo4j graph search and Reciprocal Rank Fusion. An offline mode runs the whole pipeline and its evaluation without API keys.</p>
+      <dl class="record">
+        <div><dt>Repository</dt><dd>darblinko/service-manual-rag</dd></div>
+        <div><dt>Revision</dt><dd><code>50af7e3</code></dd></div>
+        <div><dt>Measured</dt><dd>2026-10-28</dd></div>
+        <div><dt>License</dt><dd>Apache-2.0</dd></div>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Problem</h2>
+      <p>A service answer depends on one subsection of one manual: a torque value in a specification table, a step in a seal replacement, an alarm code in a troubleshooting table. Retrieval that returns a passage from the wrong subsection, or from another machine's manual, produces an answer that reads as plausible and is wrong. The evaluation here measures that directly: whether the expected subsection of the named manual is among the top 5 passages.</p>
+      <aside class="note">
+        <p>Golden set: <code>sample_data/golden_set.json</code>, 15 questions, each with an expected subsection.</p>
+      </aside>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <p>Manuals are parsed into a four-level chunk hierarchy and the level 4 chunks are embedded into Qdrant. A query runs vector search and, when enabled, Neo4j full-text search; each list adds <code>weight / (k + rank)</code> to a passage's score, with k=10 and weights 0.6 and 0.4. The top 5 passages go to the answer generator, which cites them as [Source N].</p>
+      <pre class="mermaid">
+flowchart LR
+  manuals[Manuals] --> parse[Parse and chunk] --> embed[Embed] --> qdrant[(Qdrant)]
+  parse -.-> extract[Entity extraction] -.-> neo4j[(Neo4j)]
+  question[Question] --> vsearch[Vector search]
+  question -.-> gsearch[Graph search]
+  qdrant --> vsearch
+  neo4j -.-> gsearch
+  vsearch --> rrf[Weighted RRF]
+  gsearch -.-> rrf
+  rrf --> answer[Answer with citations]
+      </pre>
+      <aside class="note">
+        <p>Dashed paths run only with <code>GRAPH_ENABLED=true</code>, a Neo4j server and an OpenAI key.</p>
+      </aside>
+    </section>
+
+    <section>
+      <h2>Measured results</h2>
+      <p>Offline baseline: hashing embedder, extractive answers and a lexical judge, on 3 synthetic manuals and 15 golden questions. The run is deterministic and CI fails if it changes. The scores measure lexical overlap and are not comparable with LLM-judged RAGAS scores.</p>
+      <figure class="chart" data-chart="baseline-summary"></figure>
+      <figure class="chart" data-chart="offline-metrics"></figure>
+      <figure class="chart" data-chart="section-hit-by-category"></figure>
+      <aside class="note">
+        <p>Source: <code>results/offline-baseline.json</code>. Reproduce: <code>LLM_MODE=offline uv run service-manual-rag ingest --reset</code>, then <code>uv run service-manual-rag evaluate --output results/offline-baseline.json</code>.</p>
+      </aside>
+    </section>
+
+    <section>
+      <h2>Run it</h2>
+      <ol class="steps">
+        <li><pre><code>git clone https://github.com/darblinko/service-manual-rag
+cd service-manual-rag</code></pre></li>
+        <li><pre><code>uv sync --extra dev</code></pre></li>
+        <li><pre><code>LLM_MODE=offline uv run service-manual-rag quickstart</code></pre></li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Limitations</h2>
+      <ul>
+        <li>4 of 15 questions missed their expected section, including all 3 troubleshooting questions.</li>
+        <li>53.3% of retrieved passages come from the manual the question names; retrieval does not filter by the model in the question.</li>
+        <li>Faithfulness is 100% by construction for extractive answers.</li>
+        <li>No OpenAI or knowledge graph run is measured in this repository.</li>
+        <li>The golden set covers 3 synthetic manuals. It detects regressions; it does not estimate accuracy on real manuals.</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    service-manual-rag. Apache-2.0. Figures generated from <code>docs/data.json</code> at <code>50af7e3</code>.
+  </footer>
+
+  <script src="charts.js" defer></script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";
+    const dark = document.documentElement.dataset.theme === "dark" ||
+      (document.documentElement.dataset.theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+    mermaid.initialize({ startOnLoad: true, theme: dark ? "dark" : "neutral",
+      fontFamily: "IBM Plex Sans, system-ui, sans-serif", securityLevel: "strict" });
+  </script>
+</body>
+</html>
