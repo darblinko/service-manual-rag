@@ -88,8 +88,13 @@ class RAGASEvaluator:
     def evaluate_pipeline(self, golden_set: list[dict], rag_pipeline: RAGPipeline) -> dict:
         """Evaluate every case and return per-question rows plus metric means."""
         rows = []
+        graph_errors = []
         for case in golden_set:
             result = rag_pipeline.query(case["question"])
+            if result["metadata"].get("graph_error"):
+                graph_errors.append(
+                    {"id": case.get("id"), "error": result["metadata"]["graph_error"]}
+                )
             contexts = [source.get("content", "") for source in result["sources"]]
             scores, errors = self.evaluate_answer(
                 case["question"], result["answer"], contexts, case.get("ground_truth")
@@ -119,6 +124,7 @@ class RAGASEvaluator:
             "generator": rag_pipeline.generator.name,
             "total_questions": len(rows),
             "failed_judgments": sum(len(row["errors"]) for row in rows),
+            "graph_errors": graph_errors,
             "aggregate": metric_means(rows),
             "by_category": {
                 category: metric_means([row for row in rows if row["category"] == category])

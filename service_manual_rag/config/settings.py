@@ -78,6 +78,9 @@ class Settings(BaseSettings):
     vector_weight: float = Field(default=0.6)
     graph_weight: float = Field(default=0.4)
     rrf_k: int = Field(default=10)
+    # vector: Qdrant only. graph: Neo4j full-text search only, needs GRAPH_ENABLED=true.
+    # fused: both lists merged with RRF; vector only while GRAPH_ENABLED is false.
+    retrieval_mode: Literal["vector", "graph", "fused"] = Field(default="fused")
 
     # Comma-separated manufacturer names the supervisor agent recognizes in messages
     known_oems: str = Field(default="ExampleCo")

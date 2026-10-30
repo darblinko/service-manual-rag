@@ -27,6 +27,8 @@ def test_quickstart_runs_end_to_end_offline(tmp_path, capsys):
     assert report["generator"] == "extractive-offline"
     assert report["total_questions"] == len(golden_set)
     assert report["failed_judgments"] == 0
+    assert report["retrieval_mode"] == "vector"
+    assert report["graph_errors"] == []
     for value in report["aggregate"].values():
         assert 0.0 <= value <= 1.0
     assert "[Source 1]" in capsys.readouterr().out

@@ -10,7 +10,7 @@ from service_manual_rag.embeddings import (
     create_embedding_service,
 )
 from service_manual_rag.processing import Chunk, ChunkLevel
-from service_manual_rag.rag import ExtractiveAnswerGenerator, FusionEngine
+from service_manual_rag.rag import ExtractiveAnswerGenerator, FusionEngine, HybridRetriever
 from service_manual_rag.rag.answering import NO_CONTEXT_ANSWER
 from service_manual_rag.vector_db import QdrantManager
 
@@ -110,3 +110,51 @@ def test_extractive_answer_cites_only_retrieved_text():
 
 def test_extractive_answer_reports_missing_context():
     assert ExtractiveAnswerGenerator().generate("coolant", []) == NO_CONTEXT_ANSWER
+
+
+class FakeVectorIndexer:
+    def __init__(self):
+        self.calls = 0
+
+    def search(self, query, limit=10, filters=None):
+        self.calls += 1
+        return [{"id": "v1", "score": 0.9, "payload": {"chunk_text": "vector passage"}}]
+
+
+class FakeGraph:
+    def __init__(self):
+        self.calls = 0
+
+    def execute_query(self, query, parameters):
+        self.calls += 1
+        return [{"node": {"id": "g1"}, "score": 2.0, "types": ["Procedure"]}]
+
+
+@pytest.mark.parametrize(
+    ("mode", "vector_calls", "graph_calls"),
+    [("vector", 1, 0), ("graph", 0, 1), ("fused", 1, 1)],
+)
+def test_retrieval_mode_selects_the_retrievers(monkeypatch, mode, vector_calls, graph_calls):
+    monkeypatch.setenv("RETRIEVAL_MODE", mode)
+    get_settings.cache_clear()
+    vector, graph = FakeVectorIndexer(), FakeGraph()
+    retriever = HybridRetriever(vector_indexer=vector, neo4j_manager=graph)
+
+    result = retriever.retrieve("impeller nut torque")
+
+    assert retriever.effective_mode == mode
+    assert (vector.calls, graph.calls) == (vector_calls, graph_calls)
+    assert len(result["vector_results"]) == vector_calls
+    assert len(result["graph_results"]) == graph_calls
+
+
+def test_fused_mode_without_graph_is_vector_only():
+    retriever = HybridRetriever(vector_indexer=FakeVectorIndexer())
+    assert retriever.effective_mode == "vector"
+
+
+def test_graph_mode_without_graph_enabled_raises(monkeypatch):
+    monkeypatch.setenv("RETRIEVAL_MODE", "graph")
+    get_settings.cache_clear()
+    with pytest.raises(ValueError, match="GRAPH_ENABLED"):
+        HybridRetriever(vector_indexer=FakeVectorIndexer())

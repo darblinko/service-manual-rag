@@ -4,10 +4,12 @@
   "indexed_chunks": 55,
   "final_top_k": 5,
   "graph_enabled": false,
+  "retrieval_mode": "vector",
   "judge": "lexical-offline",
   "generator": "extractive-offline",
   "total_questions": 15,
   "failed_judgments": 0,
+  "graph_errors": [],
   "aggregate": {
     "context_relevance": 0.268,
     "answer_relevance": 0.3931,

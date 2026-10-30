@@ -71,11 +71,15 @@ def evaluate(golden_set_path: Path, output: Path) -> dict:
         "indexed_chunks": pipeline.retriever.vector_indexer.qdrant_manager.count_points(),
         "final_top_k": settings.final_top_k,
         "graph_enabled": settings.graph_enabled,
+        "retrieval_mode": pipeline.retriever.effective_mode,
         **report,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(f"Judge: {report['judge']}, generator: {report['generator']}")
+    print(
+        f"Retrieval: {report['retrieval_mode']}, graph search errors: {len(report['graph_errors'])}"
+    )
     for metric, value in report["aggregate"].items():
         print(f"  {metric:<18} {value:.4f}")
     print(f"Failed judgments: {report['failed_judgments']}. Wrote {output.as_posix()}")
