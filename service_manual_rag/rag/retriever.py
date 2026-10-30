@@ -1,4 +1,7 @@
-"""Hybrid retriever: Qdrant vector search plus optional Neo4j full-text graph search."""
+"""Hybrid retriever: Qdrant vector search plus optional Neo4j full-text graph search.
+
+Both retrievers apply the same OEM, model and doc_id filters.
+"""
 
 from typing import Any
 
@@ -14,6 +17,53 @@ YIELD node, score
 RETURN node, score, labels(node) AS types
 LIMIT $limit
 """
+
+# Graph conditions for each vector filter key, matched against the provenance lists that
+# GraphPopulator records. Equipment IDs have the form OEM_MODEL in upper case.
+GRAPH_FILTER_CONDITIONS = {
+    "doc_id": "$doc_id IN coalesce(node.doc_ids, [])",
+    "equipment_id": "$equipment_id IN coalesce(node.equipment_ids, [])",
+    "equipment_prefix": (
+        "any(e IN coalesce(node.equipment_ids, []) WHERE e STARTS WITH $equipment_prefix)"
+    ),
+    "equipment_suffix": (
+        "any(e IN coalesce(node.equipment_ids, []) WHERE e ENDS WITH $equipment_suffix)"
+    ),
+}
+SUPPORTED_GRAPH_FILTERS = ("oem", "model", "doc_id")
+
+
+def graph_filter_parameters(filters: dict | None) -> dict[str, str]:
+    """Translate vector search filters into graph provenance parameters.
+
+    Raises:
+        ValueError: A filter key has no graph equivalent; searching without it would
+            return other equipment's results.
+    """
+    filters = {key: value for key, value in (filters or {}).items() if value}
+    unsupported = sorted(set(filters) - set(SUPPORTED_GRAPH_FILTERS))
+    if unsupported:
+        raise ValueError(f"Graph search cannot apply the filters {unsupported}")
+    parameters = {}
+    oem, model = filters.get("oem", "").upper(), filters.get("model", "").upper()
+    if oem and model:
+        parameters["equipment_id"] = f"{oem}_{model}"
+    elif oem:
+        parameters["equipment_prefix"] = f"{oem}_"
+    elif model:
+        parameters["equipment_suffix"] = f"_{model}"
+    if "doc_id" in filters:
+        parameters["doc_id"] = filters["doc_id"]
+    return parameters
+
+
+def build_graph_query(parameters: dict[str, str]) -> str:
+    """Full-text query restricted to nodes whose provenance matches every parameter."""
+    conditions = [GRAPH_FILTER_CONDITIONS[key] for key in parameters]
+    if not conditions:
+        return GRAPH_QUERY
+    where = "WHERE " + " AND ".join(conditions) + "\n"
+    return GRAPH_QUERY.replace("RETURN node", where + "RETURN node")
 
 
 class HybridRetriever:
@@ -63,7 +113,7 @@ class HybridRetriever:
         graph_error = None
         if mode != "vector":
             try:
-                graph_results = self._graph_search(query, graph_limit)
+                graph_results = self._graph_search(query, graph_limit, filters)
             except Exception as error:  # noqa: BLE001
                 logger.error(f"Graph search failed, continuing with vector results: {error}")
                 graph_error = str(error)
@@ -75,8 +125,12 @@ class HybridRetriever:
             "query": query,
         }
 
-    def _graph_search(self, query: str, limit: int) -> list[dict]:
-        records = self.neo4j.execute_query(GRAPH_QUERY, {"query": query, "limit": limit})
+    def _graph_search(self, query: str, limit: int, filters: dict | None = None) -> list[dict]:
+        filter_parameters = graph_filter_parameters(filters)
+        records = self.neo4j.execute_query(
+            build_graph_query(filter_parameters),
+            {"query": query, "limit": limit, **filter_parameters},
+        )
         return [
             {"node": dict(record["node"]), "score": record["score"], "types": record["types"]}
             for record in records

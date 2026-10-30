@@ -123,7 +123,8 @@ Extract and return as JSON with ALL applicable entities:
     {{
       "description": "...",
       "severity": "low|medium|high|critical",
-      "failure_modes": ["failure_mode_name"]
+      "failure_modes": ["failure_mode_name"],
+      "solutions": ["fix_description of a solution the text gives for this symptom"]
     }}
   ],
   "failure_modes": [
@@ -198,7 +199,7 @@ Example 2 (Troubleshooting):
 Input: "Symptom: Pump loses discharge pressure under load. Possible causes: 1) Clogged suction strainer 2) Worn impeller 3) Air in suction line. Solution: Check suction strainer first (Part# 456-7890), replace if blocked."
 Output:
 {{
-  "symptoms": [{{"description": "Pump loses discharge pressure under load", "severity": "medium", "failure_modes": ["clogged suction strainer", "worn impeller", "air in suction line"]}}],
+  "symptoms": [{{"description": "Pump loses discharge pressure under load", "severity": "medium", "failure_modes": ["clogged suction strainer", "worn impeller", "air in suction line"], "solutions": ["Check and replace suction strainer if blocked"]}}],
   "failure_modes": [
     {{"name": "clogged suction strainer", "description": "suction strainer blocked", "category": "mechanical", "severity": "medium", "safety_hazards": []}},
     {{"name": "worn impeller", "description": "impeller vanes eroded or damaged", "category": "mechanical", "severity": "high", "safety_hazards": []}},
@@ -233,6 +234,7 @@ Guidelines:
 - FAILURE MODES: Root causes (e.g., "bearing wear", "sensor malfunction", "clogged filter")
 - SYMPTOMS: Observable issues (e.g., "motor will not start", "excessive vibration")
 - LINK ENTITIES: Connect symptoms to failure_modes, failure_modes to safety_hazards, and procedures to parts, tools and skills
+- SYMPTOM SOLUTIONS: List in a symptom's "solutions" only the fix_description values the text gives for that symptom, copied exactly; leave it [] when the text pairs no solution with it
 - PART NUMBERS: Always extract when mentioned
 - TOOLS: Be specific (e.g., "1-1/4 inch wrench", "insulation resistance tester")
 - SPECIFICATIONS: Include torque values, voltages, pressures in part specifications

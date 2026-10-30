@@ -41,6 +41,11 @@ def new_node_id(prefix: str) -> str:
     return f"{prefix}_{uuid4().hex[:12]}"
 
 
+def solution_key(fix_description: str) -> str:
+    """Case and whitespace insensitive key that matches a symptom's solution to a Solution."""
+    return " ".join(fix_description.lower().split())
+
+
 class GraphPopulator:
     """Populate Neo4J knowledge graph with parallel processing."""
 
@@ -158,7 +163,7 @@ class GraphPopulator:
         total = len(chunks)
         for index, (chunk, entities) in enumerate(zip(chunks, entities_list, strict=True), start=1):
             counts.update(self._create_components(entities, chunk))
-            counts.update(self._create_standalone_hazards(entities))
+            counts.update(self._create_standalone_hazards(entities, chunk))
 
             if index % 10 == 0 or index == total:
                 logger.info(
@@ -174,12 +179,14 @@ class GraphPopulator:
         total = len(chunks)
         for index, (chunk, entities) in enumerate(zip(chunks, entities_list, strict=True), start=1):
             counts.update(self._create_components(entities, chunk))
-            counts.update(self._create_procedures(entities))
-            failure_mode_ids, failure_mode_counts = self._create_failure_modes(entities)
+            counts.update(self._create_procedures(entities, chunk))
+            failure_mode_ids, failure_mode_counts = self._create_failure_modes(entities, chunk)
             counts.update(failure_mode_counts)
-            counts.update(self._create_standalone_hazards(entities))
-            counts.update(self._create_symptoms(entities, chunk, failure_mode_ids))
-            counts.update(self._create_standalone_resources(entities))
+            counts.update(self._create_standalone_hazards(entities, chunk))
+            solution_ids = self._create_solutions(entities, chunk)
+            counts["solutions_created"] += len(solution_ids)
+            counts.update(self._create_symptoms(entities, chunk, failure_mode_ids, solution_ids))
+            counts.update(self._create_standalone_resources(entities, chunk))
 
             if index % 100 == 0 or index == total:
                 logger.info(
@@ -196,28 +203,30 @@ class GraphPopulator:
             counts["relationships_created"] += int(relationship_created)
         return counts
 
-    def _create_standalone_hazards(self, entities: dict[str, Any]) -> Counter:
+    def _create_standalone_hazards(self, entities: dict[str, Any], chunk: Chunk) -> Counter:
         """Create SafetyHazard nodes that are not tied to a failure mode."""
         counts = Counter()
         for hazard in entities.get("safety_hazards", []):
-            self._create_safety_hazard_node(hazard)
+            self._create_safety_hazard_node(hazard, chunk)
             counts["safety_hazards_created"] += 1
         return counts
 
-    def _create_procedures(self, entities: dict[str, Any]) -> Counter:
+    def _create_procedures(self, entities: dict[str, Any], chunk: Chunk) -> Counter:
         """Create Procedure nodes and link each to its required parts, tools and skills."""
         counts = Counter()
         for procedure in entities.get("procedures", []):
-            procedure_id = self._create_procedure_node(procedure)
+            procedure_id = self._create_procedure_node(procedure, chunk)
             counts["procedures_created"] += 1
-            counts.update(self._link_procedure_resources(procedure, procedure_id))
+            counts.update(self._link_procedure_resources(procedure, procedure_id, chunk))
         return counts
 
-    def _link_procedure_resources(self, procedure: dict[str, Any], procedure_id: str) -> Counter:
+    def _link_procedure_resources(
+        self, procedure: dict[str, Any], procedure_id: str, chunk: Chunk
+    ) -> Counter:
         """Create Part, Tool and Skill nodes named by a procedure and link them to it."""
         counts = Counter()
         for part_number in procedure.get("required_parts", []):
-            part_id = self._create_part_node({"part_number": part_number, "description": ""})
+            part_id = self._create_part_node({"part_number": part_number, "description": ""}, chunk)
             self._link(
                 NodeType.PROCEDURE,
                 procedure_id,
@@ -229,7 +238,7 @@ class GraphPopulator:
             counts.update(parts_created=1, relationships_created=1)
 
         for tool_name in procedure.get("required_tools", []):
-            tool_id = self._create_tool_node({"tool_name": tool_name, "tool_type": "common"})
+            tool_id = self._create_tool_node({"tool_name": tool_name, "tool_type": "common"}, chunk)
             self._link(
                 NodeType.PROCEDURE,
                 procedure_id,
@@ -241,7 +250,7 @@ class GraphPopulator:
 
         for skill_name in procedure.get("required_skills", []):
             skill_id = self._create_skill_node(
-                {"skill_name": skill_name, "certification_level": "basic"}
+                {"skill_name": skill_name, "certification_level": "basic"}, chunk
             )
             self._link(
                 NodeType.PROCEDURE,
@@ -253,7 +262,9 @@ class GraphPopulator:
             counts.update(skills_created=1, relationships_created=1)
         return counts
 
-    def _create_failure_modes(self, entities: dict[str, Any]) -> tuple[dict[str, str], Counter]:
+    def _create_failure_modes(
+        self, entities: dict[str, Any], chunk: Chunk
+    ) -> tuple[dict[str, str], Counter]:
         """Create FailureMode nodes and the safety hazards each one poses.
 
         Returns:
@@ -262,7 +273,7 @@ class GraphPopulator:
         failure_mode_ids: dict[str, str] = {}
         counts = Counter()
         for failure_mode in entities.get("failure_modes", []):
-            failure_mode_id = self._create_failure_mode_node(failure_mode)
+            failure_mode_id = self._create_failure_mode_node(failure_mode, chunk)
             failure_mode_ids[failure_mode.get("name", "")] = failure_mode_id
             counts["failure_modes_created"] += 1
 
@@ -272,7 +283,7 @@ class GraphPopulator:
                     "warning": hazard_description,
                     "severity": "warning",
                 }
-                hazard_id = self._create_safety_hazard_node(hazard)
+                hazard_id = self._create_safety_hazard_node(hazard, chunk)
                 self._link(
                     NodeType.FAILURE_MODE,
                     failure_mode_id,
@@ -283,14 +294,30 @@ class GraphPopulator:
                 counts.update(safety_hazards_created=1, relationships_created=1)
         return failure_mode_ids, counts
 
+    def _create_solutions(self, entities: dict[str, Any], chunk: Chunk) -> dict[str, str]:
+        """Create one Solution node per extracted solution; return their IDs by solution_key."""
+        solution_ids: dict[str, str] = {}
+        for solution in entities.get("solutions", []):
+            key = solution_key(solution.get("fix_description", ""))
+            if key and key not in solution_ids:
+                solution_ids[key] = self._create_solution_node(solution, chunk)
+        return solution_ids
+
     def _create_symptoms(
-        self, entities: dict[str, Any], chunk: Chunk, failure_mode_ids: dict[str, str]
+        self,
+        entities: dict[str, Any],
+        chunk: Chunk,
+        failure_mode_ids: dict[str, str],
+        solution_ids: dict[str, str],
     ) -> Counter:
-        """Create Symptom nodes linked to equipment, failure modes and solutions."""
+        """Create Symptom nodes linked to equipment, failure modes and their own solutions.
+
+        A symptom is linked only to the solutions it names in its "solutions" list.
+        """
         counts = Counter()
         equipment_id = equipment_id_for(chunk)
         for symptom in entities.get("symptoms", []):
-            symptom_id = self._create_symptom_node(symptom)
+            symptom_id = self._create_symptom_node(symptom, chunk)
             counts["symptoms_created"] += 1
 
             self._link(
@@ -313,8 +340,10 @@ class GraphPopulator:
                     )
                     counts["relationships_created"] += 1
 
-            for solution in entities.get("solutions", []):
-                solution_id = self._create_solution_node(solution)
+            for fix_description in symptom.get("solutions", []):
+                solution_id = solution_ids.get(solution_key(fix_description))
+                if solution_id is None:
+                    continue
                 self._link(
                     NodeType.SYMPTOM,
                     symptom_id,
@@ -322,20 +351,20 @@ class GraphPopulator:
                     NodeType.SOLUTION,
                     solution_id,
                 )
-                counts.update(solutions_created=1, relationships_created=1)
+                counts["relationships_created"] += 1
         return counts
 
-    def _create_standalone_resources(self, entities: dict[str, Any]) -> Counter:
+    def _create_standalone_resources(self, entities: dict[str, Any], chunk: Chunk) -> Counter:
         """Create Part, Tool and Skill nodes not tied to a procedure."""
         counts = Counter()
         for part in entities.get("parts", []):
-            self._create_part_node(part)
+            self._create_part_node(part, chunk)
             counts["parts_created"] += 1
         for tool in entities.get("tools", []):
-            self._create_tool_node(tool)
+            self._create_tool_node(tool, chunk)
             counts["tools_created"] += 1
         for skill in entities.get("skills", []):
-            self._create_skill_node(skill)
+            self._create_skill_node(skill, chunk)
             counts["skills_created"] += 1
         return counts
 
@@ -356,6 +385,13 @@ class GraphPopulator:
         return self.neo4j.create_relationship(
             from_type, from_id, relationship_type, to_type, to_id, properties=properties
         )
+
+    def _record_source(self, node_type: NodeType, node_id: str, chunk: Chunk) -> None:
+        """Add the chunk's document and equipment to the node's doc_ids and equipment_ids.
+
+        Graph search filters on these lists and document deletion removes them.
+        """
+        self.neo4j.add_provenance(node_type, node_id, chunk.doc_id, equipment_id_for(chunk))
 
     def _create_equipment_and_manual_nodes(self, doc_chunk: Chunk) -> tuple[str, str]:
         """Create Equipment and Manual nodes from document chunk.
@@ -391,6 +427,8 @@ class GraphPopulator:
             },
         )
 
+        self._record_source(NodeType.EQUIPMENT, equipment_id, doc_chunk)
+        self._record_source(NodeType.MANUAL, manual_id, doc_chunk)
         self._link(
             NodeType.EQUIPMENT,
             equipment_id,
@@ -424,6 +462,7 @@ class GraphPopulator:
                 "level": int(chunk.level),
             },
         )
+        self._record_source(NodeType.SECTION, section_id, chunk)
 
         if not chunk.doc_id:
             logger.warning(f"Section {section_id} has no doc_id; CONTAINS relationship not created")
@@ -464,6 +503,7 @@ class GraphPopulator:
                 "description": component.get("description", ""),
             },
         )
+        self._record_source(NodeType.COMPONENT, comp_id, chunk)
 
         success = self._link(
             NodeType.EQUIPMENT,
@@ -474,7 +514,7 @@ class GraphPopulator:
         )
         return comp_id, success
 
-    def _create_procedure_node(self, procedure: dict) -> str:
+    def _create_procedure_node(self, procedure: dict, chunk: Chunk) -> str:
         """Create procedure node."""
         proc_id = new_node_id("proc")
         self.neo4j.create_node(
@@ -486,9 +526,10 @@ class GraphPopulator:
                 "difficulty": procedure.get("difficulty", "medium"),
             },
         )
+        self._record_source(NodeType.PROCEDURE, proc_id, chunk)
         return proc_id
 
-    def _create_symptom_node(self, symptom: dict) -> str:
+    def _create_symptom_node(self, symptom: dict, chunk: Chunk) -> str:
         """Create symptom node."""
         symp_id = new_node_id("symp")
         self.neo4j.create_node(
@@ -499,9 +540,10 @@ class GraphPopulator:
                 "severity": symptom.get("severity", "medium"),
             },
         )
+        self._record_source(NodeType.SYMPTOM, symp_id, chunk)
         return symp_id
 
-    def _create_solution_node(self, solution: dict) -> str:
+    def _create_solution_node(self, solution: dict, chunk: Chunk) -> str:
         """Create solution node."""
         sol_id = new_node_id("sol")
         self.neo4j.create_node(
@@ -512,9 +554,10 @@ class GraphPopulator:
                 "parts_needed": solution.get("parts_needed", []),
             },
         )
+        self._record_source(NodeType.SOLUTION, sol_id, chunk)
         return sol_id
 
-    def _create_failure_mode_node(self, failure_mode: dict) -> str:
+    def _create_failure_mode_node(self, failure_mode: dict, chunk: Chunk) -> str:
         """Create failure mode node."""
         fm_id = new_node_id("fm")
         self.neo4j.create_node(
@@ -527,9 +570,10 @@ class GraphPopulator:
                 "severity": failure_mode.get("severity", "medium"),
             },
         )
+        self._record_source(NodeType.FAILURE_MODE, fm_id, chunk)
         return fm_id
 
-    def _create_safety_hazard_node(self, hazard: dict) -> str:
+    def _create_safety_hazard_node(self, hazard: dict, chunk: Chunk) -> str:
         """Create safety hazard node."""
         hazard_id = new_node_id("hazard")
         self.neo4j.create_node(
@@ -542,9 +586,10 @@ class GraphPopulator:
                 "required_ppe": hazard.get("required_ppe", ""),
             },
         )
+        self._record_source(NodeType.SAFETY_HAZARD, hazard_id, chunk)
         return hazard_id
 
-    def _create_part_node(self, part: dict) -> str:
+    def _create_part_node(self, part: dict, chunk: Chunk) -> str:
         """Create part node, merging on part number when one is given."""
         part_id = new_node_id("part")
         part_number = part.get("part_number", "")
@@ -561,9 +606,10 @@ class GraphPopulator:
             )
         else:
             self.neo4j.create_node(NodeType.PART, properties)
+        self._record_source(NodeType.PART, part_id, chunk)
         return part_id
 
-    def _create_tool_node(self, tool: dict) -> str:
+    def _create_tool_node(self, tool: dict, chunk: Chunk) -> str:
         """Create tool node, merging on tool name when one is given."""
         tool_id = new_node_id("tool")
         tool_name = tool.get("tool_name", "")
@@ -581,9 +627,10 @@ class GraphPopulator:
             )
         else:
             self.neo4j.create_node(NodeType.TOOL, properties)
+        self._record_source(NodeType.TOOL, tool_id, chunk)
         return tool_id
 
-    def _create_skill_node(self, skill: dict) -> str:
+    def _create_skill_node(self, skill: dict, chunk: Chunk) -> str:
         """Create skill node, merging on skill name when one is given."""
         skill_id = new_node_id("skill")
         skill_name = skill.get("skill_name", "")
@@ -601,6 +648,7 @@ class GraphPopulator:
             )
         else:
             self.neo4j.create_node(NodeType.SKILL, properties)
+        self._record_source(NodeType.SKILL, skill_id, chunk)
         return skill_id
 
 

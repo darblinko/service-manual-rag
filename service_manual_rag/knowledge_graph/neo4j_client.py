@@ -42,6 +42,18 @@ SET r.failure_count = COALESCE(r.failure_count, 0) + 1,
     r.last_confirmed = $timestamp
 """
 
+# Adds a document and an equipment ID to a node's provenance lists without duplicates.
+PROVENANCE_SET_CLAUSE = """
+SET n.doc_ids = CASE
+        WHEN $doc_id IS NULL OR $doc_id IN coalesce(n.doc_ids, []) THEN coalesce(n.doc_ids, [])
+        ELSE coalesce(n.doc_ids, []) + $doc_id
+    END,
+    n.equipment_ids = CASE
+        WHEN $equipment_id IN coalesce(n.equipment_ids, []) THEN coalesce(n.equipment_ids, [])
+        ELSE coalesce(n.equipment_ids, []) + $equipment_id
+    END
+"""
+
 
 class Neo4JManager:
     """Manager for Neo4J knowledge graph operations."""
@@ -360,6 +372,15 @@ class Neo4JManager:
             )
             return True
         return False
+
+    def add_provenance(
+        self, node_type: NodeType, node_id: str, doc_id: str | None, equipment_id: str
+    ) -> None:
+        """Record that a node was extracted from a document about the given equipment."""
+        query = f"MATCH (n:{node_type.value} {{id: $id}})" + PROVENANCE_SET_CLAUSE
+        self.execute_query(
+            query, {"id": node_id, "doc_id": doc_id, "equipment_id": equipment_id}, write=True
+        )
 
     def find_nodes(
         self,
