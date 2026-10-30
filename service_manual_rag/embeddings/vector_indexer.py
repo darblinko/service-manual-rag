@@ -51,9 +51,14 @@ class VectorIndexer:
         batch_size: int = 100,
         levels_to_index: list[ChunkLevel] | None = None,
     ) -> dict:
-        """Embed and upsert chunks, optionally limited to some hierarchy levels."""
+        """Embed and upsert chunks, optionally limited to some hierarchy levels.
+
+        The chunks replace each document's indexed snapshot: points that carry the same
+        ``doc_id`` but are not in the new set are deleted after the upsert.
+        """
         selected = [c for c in chunks if not levels_to_index or c.level in levels_to_index]
         self.ensure_collection()
+        previous_ids = self._indexed_ids({c.doc_id for c in chunks if c.doc_id})
 
         embeddings = self.embedding_service.embed_batch(
             [chunk.content for chunk in selected], batch_size=batch_size
@@ -63,13 +68,25 @@ class VectorIndexer:
             for chunk, vector in zip(selected, embeddings, strict=True)
         ]
         upserted = self.qdrant_manager.upsert_points(points, batch_size=batch_size)
+        stale_ids = sorted(previous_ids - {chunk.chunk_id for chunk in selected})
+        if stale_ids:
+            self.qdrant_manager.delete_points(stale_ids)
 
-        logger.info(f"Indexed {upserted} of {len(chunks)} chunks")
+        logger.info(
+            f"Indexed {upserted} of {len(chunks)} chunks, removed {len(stale_ids)} superseded"
+        )
         return {
             "total_chunks": len(chunks),
             "indexed_chunks": upserted,
+            "removed_chunks": len(stale_ids),
             "embedding_model": self.embedding_service.model,
         }
+
+    def _indexed_ids(self, doc_ids: set[str]) -> set[str]:
+        ids: set[str] = set()
+        for doc_id in doc_ids:
+            ids.update(self.qdrant_manager.list_point_ids(filters={"doc_id": doc_id}))
+        return ids
 
     def search(
         self,

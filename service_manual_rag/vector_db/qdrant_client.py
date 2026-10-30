@@ -201,6 +201,25 @@ class QdrantManager:
         )
         return result.count
 
+    def list_point_ids(
+        self, filters: dict[str, Any] | None = None, collection_name: str | None = None
+    ) -> list[str]:
+        """Return the IDs of every point matching the filters, following scroll pages."""
+        ids: list[str] = []
+        offset = None
+        while True:
+            records, offset = self.client.scroll(
+                collection_name=collection_name or self.collection_name,
+                scroll_filter=build_filter(filters),
+                limit=256,
+                offset=offset,
+                with_payload=False,
+                with_vectors=False,
+            )
+            ids.extend(str(record.id) for record in records)
+            if offset is None:
+                return ids
+
     def scroll_points(
         self,
         collection_name: str | None = None,

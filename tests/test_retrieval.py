@@ -79,6 +79,22 @@ def test_indexer_round_trip_on_embedded_qdrant():
     assert indexer.get_statistics()["qdrant"]["points_count"] == 2
 
 
+def test_reindexing_a_document_removes_its_superseded_chunks():
+    indexer = VectorIndexer()
+    indexer.index_chunks([make_chunk(1, "Tighten the impeller nut to 45 N m.")])
+    other = make_chunk(9, "Measure motor insulation resistance.")
+    other.doc_id = "other-doc"
+    indexer.index_chunks([other])
+
+    stats = indexer.index_chunks([make_chunk(2, "Tighten the impeller nut to 55 N m.")])
+
+    texts = [hit["payload"]["chunk_text"] for hit in indexer.search("impeller nut", limit=10)]
+    assert "Tighten the impeller nut to 55 N m." in texts
+    assert "Tighten the impeller nut to 45 N m." not in texts
+    assert "Measure motor insulation resistance." in texts
+    assert stats["removed_chunks"] == 1
+
+
 def test_create_collection_rejects_a_different_vector_size():
     manager = QdrantManager()
     manager.create_collection(vector_size=32)
