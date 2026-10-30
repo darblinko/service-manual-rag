@@ -1,5 +1,6 @@
 import sys
 import types
+from itertools import pairwise
 
 import pytest
 
@@ -104,6 +105,51 @@ def test_small_chunk_size_splits_a_subsection(tmp_path):
         if c.level == ChunkLevel.SEMANTIC and c.section_name == "Bearing Lubrication"
     ]
     assert len(semantic) > 1
+
+
+def oversized_manual(paragraph_words, table_rows):
+    paragraph = " ".join(f"word{i}" for i in range(paragraph_words))
+    rows = "\n".join(f"| Item {i} | Value {i} |" for i in range(table_rows))
+    return MANUAL.replace(
+        "Grease the bearings every 2,000 hours with 15 g of lithium grease.", paragraph
+    ).replace("| Rated flow | 200 L/min |", rows)
+
+
+@pytest.mark.parametrize("encoding_name", [None, "cl100k_base"])
+def test_semantic_chunks_respect_chunk_size_for_oversized_elements(tmp_path, encoding_name):
+    parsed = MarkdownParser().parse(write_manual(tmp_path, oversized_manual(10_000, 400)))
+    chunker = HierarchicalChunker(chunk_size=500, chunk_overlap=50, encoding_name=encoding_name)
+    semantic = [
+        c
+        for c in chunker.chunk_document(parsed, "ExampleCo", "T-1")
+        if c.level == ChunkLevel.SEMANTIC
+    ]
+
+    assert max(c.token_count for c in semantic) <= 500
+    assert sum("word9999" in c.content for c in semantic) == 1
+    table_chunks = [c for c in semantic if c.element_type == "table"]
+    assert len(table_chunks) > 1
+    rows = [line for c in table_chunks for line in c.content.splitlines() if line.strip()]
+    assert all(row.startswith("|") and row.endswith("|") for row in rows if row != "Ratings")
+
+
+def test_overlap_repeats_at_most_chunk_overlap_tokens(tmp_path):
+    parsed = MarkdownParser().parse(write_manual(tmp_path, oversized_manual(2_000, 1)))
+    chunker = HierarchicalChunker(chunk_size=200, chunk_overlap=20, encoding_name=None)
+    semantic = [
+        c.content
+        for c in chunker.chunk_document(parsed, "ExampleCo", "T-1")
+        if c.level == ChunkLevel.SEMANTIC and c.section_name == "Bearing Lubrication"
+    ]
+
+    for previous, current in pairwise(semantic):
+        shared = [w for w in current.split() if w in set(previous.split())]
+        assert 0 < len(shared) <= 15  # 20 approximate tokens is 15 words
+
+
+def test_chunk_overlap_must_be_smaller_than_chunk_size():
+    with pytest.raises(ValueError, match="chunk_overlap"):
+        HierarchicalChunker(chunk_size=50, chunk_overlap=50, encoding_name=None)
 
 
 def test_pipeline_takes_oem_and_model_from_front_matter(tmp_path):

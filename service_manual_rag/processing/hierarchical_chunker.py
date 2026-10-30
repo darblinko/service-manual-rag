@@ -4,10 +4,12 @@ Four levels:
 - Level 1: document (manual metadata)
 - Level 2: major sections (Safety, Maintenance, Troubleshooting, ...)
 - Level 3: subsections (headings below the major sections)
-- Level 4: semantic chunks (groups of paragraphs, lists and tables up to chunk_size tokens)
+- Level 4: semantic chunks (groups of paragraphs, lists and tables up to chunk_size tokens;
+  an element longer than that is split at line breaks, then at word boundaries)
 """
 
-from dataclasses import dataclass, field
+import re
+from dataclasses import dataclass, field, replace
 from enum import IntEnum
 from pathlib import Path
 from typing import Any
@@ -33,6 +35,8 @@ MAJOR_SECTION_KEYWORDS = (
 )
 SECTION_PREVIEW_ELEMENTS = 5
 SUBSECTION_PREVIEW_ELEMENTS = 3
+LINE_PATTERN = re.compile(r"[^\n]*\n|[^\n]+")
+WORD_PATTERN = re.compile(r"\s*\S+\s*")
 
 
 def stable_chunk_id(*parts: object) -> str:
@@ -118,12 +122,17 @@ class HierarchicalChunker:
     ):
         """
         Args:
-            chunk_size: Target size of level 4 chunks in tokens
-            chunk_overlap: When > 0, each new level 4 chunk repeats the previous
-                chunk's last element
+            chunk_size: Maximum size of level 4 chunks in tokens
+            chunk_overlap: Each new level 4 chunk starts with up to this many tokens
+                from the end of the previous chunk; must be smaller than chunk_size
             encoding_name: tiktoken encoding name, or None to approximate token
                 counts from word counts (deterministic and offline)
         """
+        if chunk_size <= 0 or not 0 <= chunk_overlap < chunk_size:
+            raise ValueError(
+                f"Need chunk_size > 0 and 0 <= chunk_overlap < chunk_size, "
+                f"got chunk_size={chunk_size}, chunk_overlap={chunk_overlap}"
+            )
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.tokenizer = None
@@ -207,24 +216,83 @@ class HierarchicalChunker:
     def _semantic_chunks(
         self, subsection: _Group, parent: Chunk, oem: str, model: str
     ) -> list[Chunk]:
-        """Group consecutive elements until adding one would exceed chunk_size."""
+        """Group consecutive elements until adding one would exceed chunk_size.
+
+        Elements are first split to at most chunk_size - chunk_overlap tokens, so a new
+        chunk always has room for the overlap taken from the end of the previous one.
+        """
+        piece_budget = self.chunk_size - self.chunk_overlap
+        elements = [
+            piece for element in subsection.elements for piece in self._split(element, piece_budget)
+        ]
         batches: list[list[ParsedElement]] = []
         current: list[ParsedElement] = []
-        current_tokens = 0
-        for element in subsection.elements:
-            element_tokens = self._count_tokens(element.content)
-            if current and current_tokens + element_tokens > self.chunk_size:
+        for element in elements:
+            if current and self._joined_tokens([*current, element]) > self.chunk_size:
                 batches.append(current)
-                current = [current[-1]] if self.chunk_overlap > 0 else []
-                current_tokens = sum(self._count_tokens(e.content) for e in current)
+                current = self._overlap(current[-1], element)
             current.append(element)
-            current_tokens += element_tokens
         if current:
             batches.append(current)
 
         return [
             self._semantic_chunk(batch, parent, oem, model, subsection.name) for batch in batches
         ]
+
+    def _split(self, element: ParsedElement, budget: int) -> list[ParsedElement]:
+        """Split an element longer than budget tokens at line breaks, then at words."""
+        if self._count_tokens(element.content) <= budget:
+            return [element]
+        units = self._units(element.content, budget)
+        pieces = []
+        start = 0
+        while start < len(units):
+            size = self._longest_fit(units[start:], budget)
+            pieces.append(replace(element, content="".join(units[start : start + size]).strip()))
+            start += size
+        return pieces
+
+    def _overlap(self, previous: ParsedElement, following: ParsedElement) -> list[ParsedElement]:
+        """The end of previous, up to chunk_overlap tokens, to start the next chunk with.
+
+        The budget shrinks when joining the overlap to the following element would exceed
+        chunk_size, which word count approximation can do by one token.
+        """
+        units = self._units(previous.content, self.chunk_overlap)
+        for budget in range(self.chunk_overlap, 0, -1):
+            size = self._longest_fit(units[::-1], budget, minimum=0)
+            overlap = [replace(previous, content="".join(units[len(units) - size :]).strip())]
+            if size and self._joined_tokens([*overlap, following]) <= self.chunk_size:
+                return overlap
+        return []
+
+    def _units(self, text: str, budget: int) -> list[str]:
+        """Lines of text, with each line longer than budget tokens split into words."""
+        return [
+            unit
+            for line in LINE_PATTERN.findall(text)
+            for unit in (
+                [line] if self._count_tokens(line) <= budget else WORD_PATTERN.findall(line)
+            )
+        ]
+
+    def _longest_fit(self, units: list[str], budget: int, minimum: int = 1) -> int:
+        """Largest n with the first n units within budget tokens; never below minimum.
+
+        For the overlap, units are reversed, so the first n are the last n of the text.
+        """
+        low, high = minimum, min(len(units), budget)
+        while low < high:
+            middle = (low + high + 1) // 2
+            text = "".join(units[:middle] if minimum else reversed(units[:middle]))
+            if self._count_tokens(text.strip()) <= budget:
+                low = middle
+            else:
+                high = middle - 1
+        return low
+
+    def _joined_tokens(self, elements: list[ParsedElement]) -> int:
+        return self._count_tokens("\n\n".join(e.content for e in elements))
 
     def _semantic_chunk(
         self,
