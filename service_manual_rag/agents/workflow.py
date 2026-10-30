@@ -7,6 +7,7 @@ Flow per user turn:
     respond ends the turn
 """
 
+from collections.abc import Callable
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -21,7 +22,46 @@ from service_manual_rag.utils.logging_config import get_logger
 logger = get_logger(__name__)
 
 
-def supervisor_node(state: AgentState) -> AgentState:
+class AgentRuntime:
+    """Builds each agent on first use and reuses it for every later turn.
+
+    One runtime belongs to one compiled workflow, so models, the re-ranker and database
+    drivers are loaded once per process instead of once per turn. ``close`` releases
+    the Neo4j drivers the agents opened.
+    """
+
+    def __init__(self):
+        self._agents: dict[str, Any] = {}
+
+    def _get(self, name: str, factory: Callable[[], Any]) -> Any:
+        if name not in self._agents:
+            self._agents[name] = factory()
+        return self._agents[name]
+
+    # The factories are looked up at call time so that tests can replace them
+    def supervisor(self) -> Any:
+        return self._get("supervisor", lambda: create_supervisor_agent())
+
+    def diagnostic(self) -> Any:
+        return self._get("diagnostic", lambda: create_diagnostic_agent())
+
+    def action(self) -> Any:
+        return self._get("action", lambda: create_action_agent())
+
+    def close(self) -> None:
+        """Close every Neo4j manager held by the agents and forget the agents."""
+        managers = {}
+        for agent in self._agents.values():
+            retriever = getattr(getattr(agent, "rag", None), "retriever", None)
+            for manager in (getattr(agent, "kg", None), getattr(retriever, "neo4j", None)):
+                if manager is not None and hasattr(manager, "close"):
+                    managers[id(manager)] = manager
+        for manager in managers.values():
+            manager.close()
+        self._agents = {}
+
+
+def supervisor_node(state: AgentState, runtime: AgentRuntime) -> AgentState:
     """Process the latest user message and set ``next_agent``."""
     logger.info("Executing supervisor node")
 
@@ -35,16 +75,16 @@ def supervisor_node(state: AgentState) -> AgentState:
 
     messages = state.get("messages", [])
     if messages and messages[-1]["role"] == "user":
-        state = create_supervisor_agent().process_message(state, messages[-1]["content"])
+        state = runtime.supervisor().process_message(state, messages[-1]["content"])
     else:
         state["next_agent"] = None
     return state
 
 
-async def diagnostic_node(state: AgentState) -> AgentState:
+async def diagnostic_node(state: AgentState, runtime: AgentRuntime) -> AgentState:
     """Run the diagnostic agent and store its result."""
     logger.info("Executing diagnostic node")
-    result = await create_diagnostic_agent().diagnose(state)
+    result = await runtime.diagnostic().diagnose(state)
     state["diagnostic_result"] = result
     state["evidence"] = [*state.get("evidence", []), *result.new_evidence]
     state["analyzed_media"] = [*state.get("analyzed_media", []), *state.get("uploaded_media", [])]
@@ -54,19 +94,19 @@ async def diagnostic_node(state: AgentState) -> AgentState:
     return state
 
 
-def action_node(state: AgentState) -> AgentState:
+def action_node(state: AgentState, runtime: AgentRuntime) -> AgentState:
     """Run the action agent to record the session and store its result."""
     logger.info("Executing action node")
-    state["action_result"] = create_action_agent().record_session(state)
+    state["action_result"] = runtime.action().record_session(state)
     state["turn_agent"] = "action"
     state["next_agent"] = None
     return state
 
 
-def respond_node(state: AgentState) -> AgentState:
+def respond_node(state: AgentState, runtime: AgentRuntime) -> AgentState:
     """Append the supervisor's reply to the messages and wait for the user."""
     logger.info("Executing respond node")
-    response = create_supervisor_agent().generate_response(state)
+    response = runtime.supervisor().generate_response(state)
     state.setdefault("messages", []).append({"role": "assistant", "content": response})
     state["pending_user_input"] = True
     return state
@@ -81,13 +121,30 @@ def should_continue(state: AgentState) -> Literal["diagnostic", "action", "respo
     return "respond"
 
 
-def create_agent_workflow() -> Any:
-    """Build and compile the agent graph."""
+def create_agent_workflow(runtime: AgentRuntime | None = None) -> Any:
+    """Build and compile the agent graph; its nodes share one AgentRuntime.
+
+    The runtime is available as the ``agent_runtime`` attribute of the result.
+    """
+    runtime = runtime or AgentRuntime()
+
+    def supervisor(state: AgentState) -> AgentState:
+        return supervisor_node(state, runtime)
+
+    async def diagnostic(state: AgentState) -> AgentState:
+        return await diagnostic_node(state, runtime)
+
+    def action(state: AgentState) -> AgentState:
+        return action_node(state, runtime)
+
+    def respond(state: AgentState) -> AgentState:
+        return respond_node(state, runtime)
+
     workflow = StateGraph(AgentState)
-    workflow.add_node("supervisor", supervisor_node)
-    workflow.add_node("diagnostic", diagnostic_node)
-    workflow.add_node("action", action_node)
-    workflow.add_node("respond", respond_node)
+    workflow.add_node("supervisor", supervisor)
+    workflow.add_node("diagnostic", diagnostic)
+    workflow.add_node("action", action)
+    workflow.add_node("respond", respond)
     workflow.set_entry_point("supervisor")
     workflow.add_conditional_edges(
         "supervisor",
@@ -101,7 +158,9 @@ def create_agent_workflow() -> Any:
     workflow.add_edge("diagnostic", "supervisor")
     workflow.add_edge("action", "supervisor")
     workflow.add_edge("respond", END)
-    return workflow.compile()
+    compiled = workflow.compile()
+    compiled.agent_runtime = runtime
+    return compiled
 
 
 _workflow: Any = None
@@ -113,6 +172,14 @@ def get_workflow() -> Any:
     if _workflow is None:
         _workflow = create_agent_workflow()
     return _workflow
+
+
+def close_workflow() -> None:
+    """Close the agents' database drivers and drop the process-wide workflow."""
+    global _workflow
+    if _workflow is not None:
+        _workflow.agent_runtime.close()
+    _workflow = None
 
 
 async def run_agent_workflow(state: AgentState) -> AgentState:

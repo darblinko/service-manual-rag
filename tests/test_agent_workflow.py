@@ -190,3 +190,36 @@ def test_add_media_skips_an_attachment_already_seen():
 
     state = {**state, "uploaded_media": [], "analyzed_media": [photo]}
     assert add_media(state, dict(photo))["uploaded_media"] == []
+
+
+class ClosableGraph(RecordingGraph):
+    def __init__(self):
+        super().__init__()
+        self.closed = False
+
+    def close(self):
+        self.closed = True
+
+
+def test_agents_are_built_once_per_workflow_and_closed_with_it(monkeypatch):
+    from service_manual_rag.agents import workflow
+
+    graph = ClosableGraph()
+    built = []
+
+    def build_diagnostic():
+        built.append("diagnostic")
+        return DiagnosticAgent(rag_pipeline=StubRag(), vlm_service=FailingVision())
+
+    monkeypatch.setattr(workflow, "_workflow", None)
+    monkeypatch.setattr(workflow, "create_diagnostic_agent", build_diagnostic)
+    monkeypatch.setattr(workflow, "create_action_agent", lambda: ActionAgent(neo4j_manager=graph))
+    state = create_initial_state("s")
+    for message in ("ExampleCo CP-200 is leaking", "It is still leaking", "record this session"):
+        state["messages"].append({"role": "user", "content": message})
+        state = asyncio.run(workflow.run_agent_workflow(state))
+
+    assert built == ["diagnostic"]
+    workflow.close_workflow()
+    assert graph.closed
+    assert workflow._workflow is None
