@@ -3,6 +3,7 @@
 import importlib.util
 import py_compile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from neo4j import GraphDatabase
@@ -132,3 +133,28 @@ def test_diagnose_retrieval_reports_indexed_manual(capsys):
 
 def test_diagnose_retrieval_fails_without_collection():
     assert load_script("diagnose_retrieval").main([]) == 1
+
+
+class FakeCompletions:
+    def create(self, **kwargs):
+        usage = SimpleNamespace(prompt_tokens=7, completion_tokens=3)
+        return SimpleNamespace(usage=usage, kwargs=kwargs)
+
+
+def test_hosted_evaluation_counts_chat_usage():
+    client = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+    counter = load_script("hosted_evaluation").UsageCounter(client)
+
+    response = client.chat.completions.create(model="m", messages=[])
+    client.chat.completions.create(model="m", messages=[])
+
+    assert response.kwargs["model"] == "m"
+    assert counter.totals() == {"chat_calls": 2, "prompt_tokens": 14, "completion_tokens": 6}
+
+
+def test_hosted_evaluation_requires_openai_and_graph(capsys, tmp_path):
+    exit_code = load_script("hosted_evaluation").main(
+        ["--output", str(tmp_path / "out.json"), "--corpus", str(SAMPLE_MANUAL)]
+    )
+    assert exit_code == 1
+    assert "LLM_MODE=openai" in capsys.readouterr().err
