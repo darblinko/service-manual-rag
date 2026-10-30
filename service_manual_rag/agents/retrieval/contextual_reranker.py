@@ -7,6 +7,7 @@ model loads, and keyword and context scoring otherwise.
 from typing import Any
 
 from service_manual_rag.agents.retrieval.query_rewriter import format_equipment_context
+from service_manual_rag.config import get_settings
 from service_manual_rag.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
@@ -23,7 +24,7 @@ class ContextualReranker:
 
     def __init__(
         self,
-        model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        model_name: str | None = None,
         use_cross_encoder: bool = True,
     ):
         """Initialize the re-ranker.
@@ -33,9 +34,10 @@ class ContextualReranker:
         re-ranker logs a warning, sets use_cross_encoder to False and uses scoring.
 
         Args:
-            model_name: Cross-encoder model name.
+            model_name: Cross-encoder model name; defaults to ``settings.reranker_model``.
             use_cross_encoder: Whether to try the cross-encoder.
         """
+        model_name = model_name or get_settings().reranker_model
         self.model_name = model_name
         self.model = self._load_cross_encoder(model_name) if use_cross_encoder else None
         self.use_cross_encoder = self.model is not None

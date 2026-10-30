@@ -18,6 +18,7 @@ from service_manual_rag.agents.diagnostic_agent import (
 )
 from service_manual_rag.agents.memory import ConversationMemoryStore, SemanticMemory
 from service_manual_rag.agents.reasoning.llm_reasoner import LLMDiagnosticReasoner
+from service_manual_rag.agents.retrieval.contextual_reranker import ContextualReranker
 from service_manual_rag.agents.session_manager import LocalSessionStore, SessionManager
 from service_manual_rag.agents.state import (
     DiagnosticResult,
@@ -202,9 +203,13 @@ def test_supervisor_routes_question_to_diagnostic_gathering():
 
 
 def test_supervisor_llm_classifier_with_stub_client():
-    supervisor = SupervisorAgent(llm_client=StubChatClient("record"))
+    client = StubChatClient("record")
+    supervisor = SupervisorAgent(llm_client=client)
     state = create_initial_state("s")
     assert supervisor._classify_intent("please file this one", state) == "record"
+    assert client.requests[0]["model"] == get_settings().openai_model
+    assert client.requests[0]["max_completion_tokens"] == 10
+    assert "max_tokens" not in client.requests[0]
 
     invalid = SupervisorAgent(llm_client=StubChatClient("dance"))
     assert invalid._classify_intent("please file this one", state) == "unclear"
@@ -251,6 +256,40 @@ def test_query_rewriter_and_enhanced_pipeline_require_key_in_openai_mode(monkeyp
         QueryRewriter()
     with pytest.raises(MissingCredentialError):
         EnhancedRAGPipeline()
+
+
+def test_model_names_come_from_the_environment(monkeypatch, tmp_path):
+    settings = use_settings(
+        monkeypatch,
+        OPENAI_MODEL="chat-model-x",
+        GEMINI_MODEL="vision-model-y",
+        RERANKER_MODEL="reranker-z",
+    )
+
+    assert settings.openai_model == "chat-model-x"
+    assert SupervisorAgent(llm_client=StubChatClient("record")).model == "chat-model-x"
+    assert VLMService(media_dir=tmp_path).model_name == "vision-model-y"
+    assert ContextualReranker(use_cross_encoder=False).model_name == "reranker-z"
+
+
+def test_default_model_names_are_current(monkeypatch):
+    for name in ("OPENAI_MODEL", "GEMINI_MODEL", "RERANKER_MODEL"):
+        monkeypatch.delenv(name, raising=False)
+    settings = use_settings(monkeypatch)
+
+    assert settings.openai_model == "gpt-4.1-mini"
+    assert settings.gemini_model == "gemini-2.5-flash"
+    assert settings.reranker_model == "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+
+def test_llm_reasoner_limits_completion_tokens():
+    client = StubChatClient("1. Worn impeller (Confidence: 0.6)")
+    reasoner = LLMDiagnosticReasoner(llm=client, model="test-model")
+
+    asyncio.run(reasoner.generate_hypotheses(["noise"], [], create_initial_state("s"), []))
+
+    assert client.requests[0]["max_completion_tokens"] == 1500
+    assert "max_tokens" not in client.requests[0]
 
 
 def test_vlm_service_needs_google_key_only_for_analysis(tmp_path):

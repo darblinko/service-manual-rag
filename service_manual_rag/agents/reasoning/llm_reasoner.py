@@ -81,7 +81,7 @@ class LLMDiagnosticReasoner:
                 {"role": "user", "content": prompt},
             ],
             temperature=0.7,
-            max_tokens=1500,
+            max_completion_tokens=1500,
         )
         response_content = response.choices[0].message.content or ""
         logger.debug("LLM response: %s", response_content)

@@ -328,7 +328,7 @@ class SupervisorAgent:
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.0,
-                max_tokens=10,
+                max_completion_tokens=10,
             )
         except OpenAIError:
             logger.exception("LLM intent classification failed; using keyword rules")

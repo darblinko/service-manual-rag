@@ -30,9 +30,10 @@ class Settings(BaseSettings):
     # deterministic components otherwise. "offline" never calls a remote API.
     llm_mode: Literal["auto", "openai", "offline"] = Field(default="auto")
 
-    # OpenAI
+    # OpenAI. The chat model serves answers, agents, entity extraction and the judge.
+    # Call sites set temperature, so the default is a non-reasoning model.
     openai_api_key: str | None = Field(default=None)
-    openai_model: str = Field(default="gpt-4-turbo-preview")
+    openai_model: str = Field(default="gpt-4.1-mini")
     openai_embedding_model: str = Field(default="text-embedding-3-large")
     openai_embedding_dimensions: int = Field(default=3072)
     openai_rpm: int = Field(default=10000, description="Requests per minute limit")
@@ -42,6 +43,10 @@ class Settings(BaseSettings):
 
     # Google Gemini, used only by the optional vision service
     google_api_key: str | None = Field(default=None)
+    gemini_model: str = Field(default="gemini-2.5-flash")
+
+    # Cross-encoder for the agents' re-ranker (sentence-transformers, optional)
+    reranker_model: str = Field(default="cross-encoder/ms-marco-MiniLM-L-6-v2")
 
     # Qdrant: "local" stores vectors on disk through qdrant-client with no server
     qdrant_mode: Literal["local", "server"] = Field(default="local")

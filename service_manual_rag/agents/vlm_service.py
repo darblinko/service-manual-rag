@@ -18,7 +18,6 @@ from service_manual_rag.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-GEMINI_MODEL = "gemini-1.5-pro"
 DEFAULT_MEDIA_DIR = Path("data/agent_media")
 
 
@@ -40,6 +39,7 @@ class VLMService:
         """
         settings = settings or get_settings()
         self.api_key = api_key or settings.google_api_key
+        self.model_name = settings.gemini_model
         self.media_dir = Path(media_dir) if media_dir else DEFAULT_MEDIA_DIR
         self._genai: Any = None
         self._model: Any = None
@@ -56,8 +56,8 @@ class VLMService:
 
             genai.configure(api_key=self.api_key)
             self._genai = genai
-            self._model = genai.GenerativeModel(GEMINI_MODEL)
-            logger.info("VLM service connected to %s", GEMINI_MODEL)
+            self._model = genai.GenerativeModel(self.model_name)
+            logger.info("VLM service connected to %s", self.model_name)
         return self._model
 
     def analyze_image(
