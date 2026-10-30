@@ -1,0 +1,50 @@
+{
+  "description": "Public-domain PDF corpus for scripts/fetch_public_corpus.py. The PDFs are downloaded at run time and are not committed. Checksums recorded 2026-10-30.",
+  "documents": [
+    {
+      "id": "faa-h-8083-32b-ch10",
+      "title": "Aviation Maintenance Technician Handbook, Powerplant, Chapter 10: Engine Maintenance and Operation",
+      "publisher": "Federal Aviation Administration, Flight Standards Service, Airman Testing Standards Branch (AFS-630)",
+      "year": 2023,
+      "url": "https://www.faa.gov/sites/faa.gov/files/12_amtp_ch10_0.pdf",
+      "landing_page": "https://www.faa.gov/regulationspolicies/handbooksmanuals/aviation/faa-h-8083-32b-chapter-10-engine-maintenance",
+      "sha256": "55964e589d96f657812938d932280d0502d9055c387ea07707cbc9777d3cfec8",
+      "bytes": 14227775,
+      "pages": 65,
+      "oem": "FAA",
+      "model": "FAA-H-8083-32B",
+      "license": "Work of the United States Government; not subject to copyright in the United States (17 U.S.C. 105).",
+      "notes": "The handbook front matter credits some images to third parties (Tom Wild; Marco Leerentveld for an image in Chapter 10). The pipeline indexes text only."
+    },
+    {
+      "id": "faa-h-8083-32b-ch06",
+      "title": "Aviation Maintenance Technician Handbook, Powerplant, Chapter 6: Lubrication and Cooling Systems",
+      "publisher": "Federal Aviation Administration, Flight Standards Service, Airman Testing Standards Branch (AFS-630)",
+      "year": 2023,
+      "url": "https://www.faa.gov/sites/faa.gov/files/08_amtp_ch6.pdf",
+      "landing_page": "https://www.faa.gov/regulationspolicies/handbooksmanuals/aviation/faa-h-8083-32b-chapter-6-lubrication-cooling-systems",
+      "sha256": "75f275d7ce07032eb3cd154c4406d71140b2d0ffc82b52319cfac05f4a96e8de",
+      "bytes": 19072507,
+      "pages": 40,
+      "oem": "FAA",
+      "model": "FAA-H-8083-32B",
+      "license": "Work of the United States Government; not subject to copyright in the United States (17 U.S.C. 105).",
+      "notes": "The handbook front matter credits some images to third parties (Tom Wild; Pratt & Whitney; DeltaHawk Engines for an image in Chapter 6). The pipeline indexes text only."
+    },
+    {
+      "id": "faa-ac-150-5340-26c",
+      "title": "Maintenance of Airport Visual Aid Facilities",
+      "publisher": "Federal Aviation Administration, Office of Airport Safety and Standards (AAS-100)",
+      "year": 2014,
+      "url": "https://www.faa.gov/documentLibrary/media/Advisory_Circular/150-5340-26c.pdf",
+      "landing_page": "https://www.faa.gov/airports/resources/advisory_circulars/index.cfm/go/document.current/documentnumber/150_5340-26",
+      "sha256": "10b186b96742c8c7060b588eaf72ac288ef58ec7cc607f88111bacd830a1520f",
+      "bytes": 2683370,
+      "pages": 144,
+      "oem": "FAA",
+      "model": "AC 150/5340-26C",
+      "license": "Work of the United States Government; not subject to copyright in the United States (17 U.S.C. 105).",
+      "notes": "Advisory Circular dated 2014-06-20; cancels AC 150/5340-26B."
+    }
+  ]
+}
