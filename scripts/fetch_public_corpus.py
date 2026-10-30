@@ -19,6 +19,7 @@ from pathlib import Path
 
 from service_manual_rag.config import MissingCredentialError
 from service_manual_rag.embeddings import VectorIndexer
+from service_manual_rag.graph_builder import GraphPopulator, open_graph_populator
 from service_manual_rag.processing import ChunkLevel, PDFParser, ProcessingPipeline
 from service_manual_rag.utils import setup_logging
 
@@ -122,8 +123,9 @@ def ingest_documents(
     pipeline: ProcessingPipeline,
     indexer: VectorIndexer,
     levels: list[int],
+    populator: GraphPopulator | None = None,
 ) -> dict:
-    """Parse each PDF with the pipeline and index the selected chunk levels."""
+    """Parse each PDF, index the selected chunk levels and, with a populator, build the graph."""
     selected_levels = [ChunkLevel(level) for level in levels]
     totals = {"files": 0, "chunks": 0, "indexed": 0}
     for document, path in documents_and_paths:
@@ -133,6 +135,8 @@ def ingest_documents(
         totals["chunks"] += stats["total_chunks"]
         totals["indexed"] += stats["indexed_chunks"]
         print(f"{path.name}: {stats['indexed_chunks']} of {stats['total_chunks']} chunks indexed")
+        if populator is not None:
+            print(f"{path.name}: graph {populator.populate(chunks)}")
     print(f"Indexed {totals['indexed']} chunks from {totals['files']} PDF files")
     return totals
 
@@ -154,6 +158,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--reset", action="store_true", help="Recreate the collection before indexing"
     )
+    parser.add_argument(
+        "--graph",
+        action="store_true",
+        help="Also extract entities with OpenAI into Neo4j (needs NEO4J_PASSWORD)",
+    )
     parser.add_argument("--log-level", default="WARNING", help="Logging level (default WARNING)")
     return parser
 
@@ -174,6 +183,7 @@ def main(argv: list[str] | None = None) -> int:
             ProcessingPipeline(pdf_parser=pdf_parser),
             indexer,
             args.levels,
+            open_graph_populator() if args.graph else None,
         )
     except FETCH_ERRORS as error:
         print(f"Error: {error}", file=sys.stderr)

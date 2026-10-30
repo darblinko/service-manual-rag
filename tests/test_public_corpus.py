@@ -169,6 +169,29 @@ def test_ingest_parses_each_pdf_with_manifest_metadata(tmp_path):
     assert hits[0]["payload"]["page_numbers"] == [2]
 
 
+class RecordingPopulator:
+    def __init__(self):
+        self.batches = []
+
+    def populate(self, chunks):
+        self.batches.append(chunks)
+        return {"sections_created": len(chunks)}
+
+
+def test_ingest_passes_every_chunk_level_to_the_graph_populator(tmp_path):
+    populator = RecordingPopulator()
+    fetch.ingest_documents(
+        [(make_document(), tmp_path / "test-doc.pdf")],
+        ProcessingPipeline(pdf_parser=StubPdfParser()),
+        VectorIndexer(),
+        levels=[4],
+        populator=populator,
+    )
+
+    assert len(populator.batches) == 1
+    assert {int(chunk.level) for chunk in populator.batches[0]} >= {1, 4}
+
+
 def test_main_without_ingest_downloads_every_manifest_entry(monkeypatch, tmp_path):
     manifest = tmp_path / "manifest.json"
     second = make_document(id="second-doc", url="https://example.gov/second.pdf")

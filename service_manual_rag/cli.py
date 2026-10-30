@@ -8,6 +8,7 @@ from pathlib import Path
 from service_manual_rag.config import MissingCredentialError, get_settings
 from service_manual_rag.embeddings import VectorIndexer
 from service_manual_rag.evaluation import RAGASEvaluator, load_golden_set
+from service_manual_rag.graph_builder import open_graph_populator
 from service_manual_rag.processing import ChunkLevel, ProcessingPipeline
 from service_manual_rag.rag import RAGPipeline
 from service_manual_rag.utils import setup_logging
@@ -26,10 +27,12 @@ def manual_files(directory: Path) -> list[Path]:
     return files
 
 
-def ingest(manuals: Path, levels: list[int], reset: bool) -> dict:
+def ingest(manuals: Path, levels: list[int], reset: bool, graph: bool = False) -> dict:
+    """Index the manuals; with graph, also extract entities from every chunk into Neo4j."""
     pipeline = ProcessingPipeline()
     indexer = VectorIndexer()
     indexer.ensure_collection(reset=reset)
+    populator = open_graph_populator(reset=reset) if graph else None
     selected_levels = [ChunkLevel(level) for level in levels]
     totals = {"files": 0, "chunks": 0, "indexed": 0}
     for path in manual_files(manuals):
@@ -39,6 +42,9 @@ def ingest(manuals: Path, levels: list[int], reset: bool) -> dict:
         totals["chunks"] += stats["total_chunks"]
         totals["indexed"] += stats["indexed_chunks"]
         print(f"{path.name}: {stats['indexed_chunks']} of {stats['total_chunks']} chunks indexed")
+        if populator is not None:
+            graph_stats = populator.populate(chunks)
+            print(f"{path.name}: graph {graph_stats}")
     totals["embedding_model"] = indexer.embedding_service.model
     print(
         f"Indexed {totals['indexed']} chunks from {totals['files']} files "
@@ -94,7 +100,14 @@ def build_parser() -> argparse.ArgumentParser:
     ingest_cmd = commands.add_parser("ingest", help="Parse, chunk and index manuals")
     ingest_cmd.add_argument("--manuals", type=Path, default=DEFAULT_MANUALS)
     ingest_cmd.add_argument("--levels", type=int, nargs="+", default=[4], choices=[1, 2, 3, 4])
-    ingest_cmd.add_argument("--reset", action="store_true", help="Recreate the collection first")
+    ingest_cmd.add_argument(
+        "--reset", action="store_true", help="Recreate the collection (and with --graph, the graph)"
+    )
+    ingest_cmd.add_argument(
+        "--graph",
+        action="store_true",
+        help="Also extract entities with OpenAI into Neo4j (needs NEO4J_PASSWORD)",
+    )
 
     ask_cmd = commands.add_parser("ask", help="Answer a question from the indexed manuals")
     ask_cmd.add_argument("question")
@@ -118,7 +131,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Mode: {'openai' if settings.use_openai else 'offline'}", file=sys.stderr)
     try:
         if args.command == "ingest":
-            ingest(args.manuals, args.levels, args.reset)
+            ingest(args.manuals, args.levels, args.reset, args.graph)
         elif args.command == "ask":
             ask(args.question, args.top_k)
         elif args.command == "evaluate":

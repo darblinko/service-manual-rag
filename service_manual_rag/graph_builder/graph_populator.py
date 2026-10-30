@@ -1,5 +1,6 @@
 """Populate Neo4J knowledge graph from extracted entities."""
 
+import asyncio
 from collections import Counter
 from typing import Any
 from uuid import uuid4
@@ -58,6 +59,10 @@ class GraphPopulator:
         self.extractor = entity_extractor or EntityExtractor()
 
         logger.info("GraphPopulator initialized")
+
+    def populate(self, chunks: list[Chunk]) -> dict:
+        """Run populate_from_chunks to completion from synchronous code."""
+        return asyncio.run(self.populate_from_chunks(chunks))
 
     async def populate_from_chunks(self, chunks: list[Chunk]) -> dict:
         """Populate graph from chunks with parallel entity extraction.
@@ -583,3 +588,12 @@ class GraphPopulator:
         else:
             self.neo4j.create_node(NodeType.SKILL, properties)
         return skill_id
+
+
+def open_graph_populator(reset: bool = False) -> GraphPopulator:
+    """Return a GraphPopulator whose database has the schema; reset deletes every node first."""
+    populator = GraphPopulator()
+    if reset:
+        populator.neo4j.clear_database(confirm=True)
+    populator.neo4j.initialize_schema()
+    return populator

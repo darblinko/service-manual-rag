@@ -62,3 +62,29 @@ def test_ask_without_openai_key_in_openai_mode_fails_cleanly(monkeypatch, capsys
 def test_missing_manual_directory_is_reported(tmp_path, capsys):
     assert main(["ingest", "--manuals", str(tmp_path / "empty-dir-that-is-missing")]) == 1
     assert "Error" in capsys.readouterr().err
+
+
+class RecordingPopulator:
+    def __init__(self):
+        self.batches = []
+
+    def populate(self, chunks):
+        self.batches.append(chunks)
+        return {"sections_created": len(chunks)}
+
+
+def test_ingest_with_graph_populates_each_manual(monkeypatch, capsys):
+    populator = RecordingPopulator()
+    resets = []
+
+    def open_populator(reset=False):
+        resets.append(reset)
+        return populator
+
+    monkeypatch.setattr("service_manual_rag.cli.open_graph_populator", open_populator)
+    manuals = SAMPLE_DATA / "manuals"
+    assert main(["ingest", "--manuals", str(manuals), "--reset", "--graph"]) == 0
+
+    assert resets == [True]
+    assert len(populator.batches) == len(list(manuals.glob("*.md")))
+    assert "graph" in capsys.readouterr().out
