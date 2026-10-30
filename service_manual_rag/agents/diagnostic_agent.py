@@ -8,6 +8,7 @@ Steps per turn:
 5. Decide between a diagnosis and a request for more evidence, and add safety warnings.
 """
 
+from datetime import datetime
 from typing import Any
 
 from openai import OpenAIError
@@ -18,6 +19,7 @@ from service_manual_rag.agents.state import (
     AgentState,
     DiagnosticResult,
     DiagnosticStatus,
+    Evidence,
     Hypothesis,
 )
 from service_manual_rag.agents.vlm_service import VLMService, get_vlm_service
@@ -33,6 +35,9 @@ VIDEO_TYPES = ("video", "mp4", "mov")
 
 DIAGNOSIS_THRESHOLD = 0.75
 MORE_EVIDENCE_THRESHOLD = 0.5
+# Fused result fields kept with each manual section, for citation in prompts and the UI
+SECTION_METADATA = ("section_name", "oem", "model", "doc_id", "page_numbers")
+
 # Similar recorded cases are historical, so their confidence is discounted
 SIMILAR_CASE_DISCOUNT = 0.7
 
@@ -169,7 +174,8 @@ class DiagnosticAgent:
         """Run one diagnostic pass over the current state."""
         logger.info("Starting diagnosis for session: %s", state.get("session_id"))
 
-        observations = self._analyze_evidence(state)
+        observations, new_evidence = self._analyze_media(state)
+        evidence = [*state.get("evidence", []), *new_evidence]
         hypotheses: list[Hypothesis] = []
         relevant_sections: list[dict] = []
 
@@ -183,10 +189,10 @@ class DiagnosticAgent:
             hypotheses.extend(kg_results["hypotheses"])
             observations.extend(kg_results["observations"])
 
-        hypotheses.extend(await self._generate_hypotheses(state, relevant_sections))
+        hypotheses.extend(await self._generate_hypotheses(state, evidence, relevant_sections))
 
         diagnosis, recommended_action, evidence_needed = self._make_recommendation(
-            hypotheses, state
+            hypotheses, state, relevant_sections
         )
 
         result = DiagnosticResult(
@@ -197,6 +203,7 @@ class DiagnosticAgent:
             evidence_needed=evidence_needed,
             safety_warnings=self._check_safety_warnings(diagnosis, hypotheses),
             relevant_manual_sections=relevant_sections,
+            new_evidence=new_evidence,
         )
         logger.info(
             "Diagnosis complete: %d observations, %d hypotheses, diagnosis=%s",
@@ -206,9 +213,14 @@ class DiagnosticAgent:
         )
         return result
 
-    def _analyze_evidence(self, state: AgentState) -> list[str]:
-        """Analyze uploaded images and videos; a failed analysis becomes an observation."""
+    def _analyze_media(self, state: AgentState) -> tuple[list[str], list[Evidence]]:
+        """Analyze media not yet analyzed and return (observations, evidence).
+
+        Each finding becomes an observation for the reply and an Evidence item for
+        hypothesis generation. A failed analysis becomes an observation only.
+        """
         observations = []
+        evidence = []
         equipment_context = {
             "oem": state.get("equipment_oem") or "",
             "model": state.get("equipment_model") or "",
@@ -237,12 +249,17 @@ class DiagnosticAgent:
 
             label = "Visual inspection" if kind == "image" else "Video analysis"
             for finding in vlm_result.get("findings", []):
-                observation = f"{label}: {finding.get('description', '')}"
+                description = finding.get("description", "")
+                observation = f"{label}: {description}"
                 if kind == "image":
                     observation += f" (confidence: {finding.get('confidence', 0):.2f})"
                 observations.append(observation)
+                if description:
+                    evidence.append(
+                        Evidence(kind, description, datetime.now(), metadata={"media": media_path})
+                    )
 
-        return observations
+        return observations, evidence
 
     def _check_manual_exists(self, oem: str, model: str) -> bool:
         """Return True if the knowledge graph links a manual to this equipment."""
@@ -297,10 +314,13 @@ class DiagnosticAgent:
 
         sections = [
             {
+                "id": source.get("id"),
                 "content": source.get("content", ""),
                 "sources": source.get("sources", []),
                 "score": source.get("rrf_score", 0.0),
-                "metadata": {},
+                "metadata": {
+                    field: source[field] for field in SECTION_METADATA if source.get(field)
+                },
             }
             for source in sources
         ]
@@ -367,34 +387,44 @@ class DiagnosticAgent:
         return {"observations": observations, "hypotheses": hypotheses}
 
     async def _generate_hypotheses(
-        self, state: AgentState, manual_sections: list[dict]
+        self, state: AgentState, evidence: list[Evidence], manual_sections: list[dict]
     ) -> list[Hypothesis]:
         """Generate hypotheses with the LLM reasoner, or with keyword rules."""
         symptoms = state.get("symptoms", [])
-        if not symptoms:
-            logger.info("No symptoms provided; skipping hypothesis generation")
+        if not symptoms and not evidence:
+            logger.info("No symptoms or evidence; skipping hypothesis generation")
             return []
 
+        # The keyword rules read evidence descriptions as additional symptom text
+        rule_input = [*symptoms, *(item.content for item in evidence)]
         if self.llm_reasoner is None:
-            return rule_based_hypotheses(symptoms, manual_sections)
+            return rule_based_hypotheses(rule_input, manual_sections)
 
         try:
             return await self.llm_reasoner.generate_hypotheses(
                 symptoms=symptoms,
-                evidence=state.get("evidence", []),
+                evidence=evidence,
                 context=state,
                 retrieved_docs=manual_sections,
             )
         except OpenAIError:
             logger.exception("LLM hypothesis generation failed; using keyword rules")
-            return rule_based_hypotheses(symptoms, manual_sections)
+            return rule_based_hypotheses(rule_input, manual_sections)
 
     @staticmethod
     def _make_recommendation(
-        hypotheses: list[Hypothesis], state: AgentState
+        hypotheses: list[Hypothesis], state: AgentState, manual_sections: list[dict]
     ) -> tuple[str | None, str | None, str | None]:
-        """Return (diagnosis, recommended_action, evidence_needed)."""
+        """Return (diagnosis, recommended_action, evidence_needed).
+
+        Coverage is judged from the retrieved manual sections: an information question
+        answered from the manuals needs no diagnosis and no further evidence.
+        """
         if not hypotheses:
+            if manual_sections:
+                if state.get("status") == DiagnosticStatus.DIAGNOSING:
+                    return None, None, NEED_DETAILS_MESSAGE
+                return None, None, None
             if state.get("equipment_oem") and state.get("equipment_model"):
                 equipment = f"{state['equipment_oem']} {state['equipment_model']}"
                 message = (

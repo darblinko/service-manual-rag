@@ -124,6 +124,17 @@ Return ONLY the intent category as a single word \
 Intent:"""
 
 
+def clear_equipment_context(state: AgentState) -> None:
+    """Drop the symptoms, evidence, media and results that belong to the previous equipment."""
+    state["diagnostic_result"] = None
+    state["action_result"] = None
+    state["hypotheses"] = []
+    state["symptoms"] = []
+    state["evidence"] = []
+    state["analyzed_media"] = []
+    state["status"] = DiagnosticStatus.IDLE
+
+
 def parse_known_oems(known_oems: str) -> list[str]:
     """Split the comma-separated KNOWN_OEMS setting into names, keeping their casing."""
     return [name.strip() for name in known_oems.split(",") if name.strip()]
@@ -181,7 +192,7 @@ class SupervisorAgent:
         prev_oem = state.get("equipment_oem")
         prev_model = state.get("equipment_model")
 
-        self._extract_information(state, user_message)
+        self._extract_equipment(state, user_message)
 
         new_oem = state.get("equipment_oem")
         new_model = state.get("equipment_model")
@@ -195,13 +206,13 @@ class SupervisorAgent:
                 new_oem,
                 new_model,
             )
-            state["diagnostic_result"] = None
-            state["action_result"] = None
-            state["hypotheses"] = []
-            state["symptoms"] = []
+            clear_equipment_context(state)
 
-        # Uploaded media goes to the diagnostic agent for visual analysis regardless of intent
-        if state.get("uploaded_media"):
+        self._extract_symptoms(state, user_message)
+
+        # New media goes to the diagnostic agent for visual analysis, unless the technician
+        # asked to record or confirm; the media then waits for the next diagnostic turn.
+        if state.get("uploaded_media") and intent not in ("record", "confirm_action"):
             state["next_agent"] = "diagnostic"
             state["status"] = DiagnosticStatus.DIAGNOSING
             logger.info(
@@ -226,28 +237,43 @@ class SupervisorAgent:
 
     def _extract_information(self, state: AgentState, message: str) -> None:
         """Extract OEM, model and symptoms from the message into the state in place."""
+        self._extract_equipment(state, message)
+        self._extract_symptoms(state, message)
+
+    def _extract_equipment(self, state: AgentState, message: str) -> None:
+        """Set OEM and model from the message.
+
+        The first model named sets the model. Later messages change it only when they
+        name a model in the hyphenated form, such as RSC-15, because looser tokens such
+        as an alarm code E06 also match MODEL_PATTERN. A known OEM always applies; a
+        pattern OEM applies when none is set or when it directly precedes the new model.
+        """
+        prev_model = state.get("equipment_model")
+        model = self._extract_model(message, strict=bool(prev_model))
+        if model and model != prev_model:
+            state["equipment_model"] = model
+            logger.debug("Extracted model: %s", model)
+
+        oem = find_known_oem(message, self.known_oems)
+        if oem is None and (not state.get("equipment_oem") or model != prev_model):
+            oem = self._extract_oem_by_pattern(message, before_model=model if prev_model else None)
+        if oem:
+            state["equipment_oem"] = oem
+            logger.debug("Extracted OEM: %s", oem)
+
+    @staticmethod
+    def _extract_model(message: str, strict: bool) -> str | None:
+        for candidate in re.findall(MODEL_PATTERN, message.upper()):
+            has_digit = any(char.isdigit() for char in candidate)
+            if len(candidate) < 2 or candidate in STOP_MODELS or not has_digit:
+                continue
+            if strict and not re.fullmatch(r"[A-Z]+-[A-Z0-9]+", candidate):
+                continue
+            return candidate
+        return None
+
+    def _extract_symptoms(self, state: AgentState, message: str) -> None:
         message_lower = message.lower()
-
-        if not state.get("equipment_oem"):
-            oem = find_known_oem(message, self.known_oems)
-            if oem:
-                state["equipment_oem"] = oem
-                logger.debug("Extracted OEM from KNOWN_OEMS: %s", oem)
-
-        if not state.get("equipment_oem"):
-            oem = self._extract_oem_by_pattern(message)
-            if oem:
-                state["equipment_oem"] = oem
-                logger.debug("Extracted OEM by pattern: %s", oem)
-
-        if not state.get("equipment_model"):
-            for candidate in re.findall(MODEL_PATTERN, message.upper()):
-                has_digit = any(char.isdigit() for char in candidate)
-                if len(candidate) >= 2 and candidate not in STOP_MODELS and has_digit:
-                    state["equipment_model"] = candidate
-                    logger.debug("Extracted model: %s", candidate)
-                    break
-
         if "symptoms" not in state:
             state["symptoms"] = []
         for keyword in SYMPTOM_KEYWORDS:
@@ -256,9 +282,15 @@ class SupervisorAgent:
                 logger.debug("Extracted symptom: %s", keyword)
 
     @staticmethod
-    def _extract_oem_by_pattern(message: str) -> str | None:
-        """Find a manufacturer name from phrasing such as 'made by X' or 'X CP-200'."""
-        for pattern in MANUFACTURER_PATTERNS:
+    def _extract_oem_by_pattern(message: str, before_model: str | None = None) -> str | None:
+        """Find a manufacturer name from phrasing such as 'made by X' or 'X CP-200'.
+
+        With ``before_model``, only the word directly before that model is considered.
+        """
+        patterns = MANUFACTURER_PATTERNS
+        if before_model:
+            patterns = [r"\b([A-Za-z][A-Za-z]+)\s+" + re.escape(before_model) + r"\b"]
+        for pattern in patterns:
             match = re.search(pattern, message, re.IGNORECASE)
             if match and match.group(1).strip().lower() not in NOT_MANUFACTURERS:
                 oem = match.group(1).strip()
@@ -348,11 +380,16 @@ class SupervisorAgent:
         return intent
 
     def generate_response(self, state: AgentState) -> str:
-        """Generate the reply to the user from the current state."""
-        if state.get("diagnostic_result"):
+        """Generate the reply to the user from the current state.
+
+        The diagnosis or action result is shown only in the turn whose specialist agent
+        produced it, named by ``state['turn_agent']``.
+        """
+        turn_agent = state.get("turn_agent")
+        if turn_agent == "diagnostic" and state.get("diagnostic_result"):
             return self._format_diagnostic_response(state)
 
-        if state.get("action_result"):
+        if turn_agent == "action" and state.get("action_result"):
             return self._format_action_response(state)
 
         if not state.get("equipment_oem") and not state.get("symptoms"):

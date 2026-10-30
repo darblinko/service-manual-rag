@@ -245,6 +245,7 @@ def test_supervisor_formats_response_without_decorative_symbols():
         recommended_action="Replace the mechanical seal",
         safety_warnings=["PRESSURE HAZARD: Release pressure before opening system"],
     )
+    state["turn_agent"] = "diagnostic"
 
     response = supervisor.generate_response(state)
 

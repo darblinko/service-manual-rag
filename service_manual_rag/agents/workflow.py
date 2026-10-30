@@ -8,6 +8,7 @@ Flow per user turn:
 """
 
 from typing import Any, Literal
+from uuid import uuid4
 
 from langgraph.graph import END, StateGraph
 
@@ -24,37 +25,31 @@ def supervisor_node(state: AgentState) -> AgentState:
     """Process the latest user message and set ``next_agent``."""
     logger.info("Executing supervisor node")
 
-    messages = state.get("messages", [])
-    current_message = None
-    if messages and messages[-1]["role"] == "user":
-        current_message = messages[-1]["content"]
-
-    # After a specialist agent returns, the graph re-enters the supervisor with the same
-    # message. Routing it again would loop, so a message that already has a result is
-    # sent to the respond node instead.
-    last_processed = state.get("last_processed_message")
-    has_result = state.get("diagnostic_result") or state.get("action_result")
-
-    if has_result and current_message == last_processed:
-        logger.info("Message already processed; routing to respond")
+    # After a specialist agent returns, the graph re-enters the supervisor in the same
+    # turn. Routing the turn again would loop, so a processed turn goes to respond.
+    if state.get("turn_id") is not None and state.get("last_processed_turn") == state["turn_id"]:
+        logger.info("Turn already processed; routing to respond")
         state["next_agent"] = None
         return state
-    if has_result:
-        logger.info("New message; clearing previous results")
-        state["diagnostic_result"] = None
-        state["action_result"] = None
+    state["last_processed_turn"] = state.get("turn_id")
 
-    if current_message:
-        state = create_supervisor_agent().process_message(state, current_message)
-        state["last_processed_message"] = current_message
-
+    messages = state.get("messages", [])
+    if messages and messages[-1]["role"] == "user":
+        state = create_supervisor_agent().process_message(state, messages[-1]["content"])
+    else:
+        state["next_agent"] = None
     return state
 
 
 async def diagnostic_node(state: AgentState) -> AgentState:
     """Run the diagnostic agent and store its result."""
     logger.info("Executing diagnostic node")
-    state["diagnostic_result"] = await create_diagnostic_agent().diagnose(state)
+    result = await create_diagnostic_agent().diagnose(state)
+    state["diagnostic_result"] = result
+    state["evidence"] = [*state.get("evidence", []), *result.new_evidence]
+    state["analyzed_media"] = [*state.get("analyzed_media", []), *state.get("uploaded_media", [])]
+    state["uploaded_media"] = []
+    state["turn_agent"] = "diagnostic"
     state["next_agent"] = None
     return state
 
@@ -63,6 +58,7 @@ def action_node(state: AgentState) -> AgentState:
     """Run the action agent to record the session and store its result."""
     logger.info("Executing action node")
     state["action_result"] = create_action_agent().record_session(state)
+    state["turn_agent"] = "action"
     state["next_agent"] = None
     return state
 
@@ -120,7 +116,16 @@ def get_workflow() -> Any:
 
 
 async def run_agent_workflow(state: AgentState) -> AgentState:
-    """Run the workflow for one user turn. The new user message must already be in the state."""
+    """Run the workflow for one user turn. The new user message must already be in the state.
+
+    Each call is a new turn with its own turn_id, so a repeated message is processed again.
+    """
     logger.info("Running agent workflow for session: %s", state.get("session_id"))
+    turn_state: AgentState = {
+        **state,
+        "turn_id": uuid4().hex,
+        "turn_agent": None,
+        "action_result": None,
+    }
     # ainvoke is required because diagnostic_node is async
-    return await get_workflow().ainvoke(state)
+    return await get_workflow().ainvoke(turn_state)

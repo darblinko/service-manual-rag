@@ -82,6 +82,8 @@ class DiagnosticResult:
     evidence_needed: str | None = None
     safety_warnings: list[str] = field(default_factory=list)
     relevant_manual_sections: list[dict[str, Any]] = field(default_factory=list)
+    # Evidence produced by this diagnostic pass, such as visual findings from uploaded media
+    new_evidence: list[Evidence] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         return {
@@ -92,6 +94,7 @@ class DiagnosticResult:
             "evidence_needed": self.evidence_needed,
             "safety_warnings": self.safety_warnings,
             "relevant_manual_sections": self.relevant_manual_sections,
+            "new_evidence": [evidence.to_dict() for evidence in self.new_evidence],
         }
 
     @classmethod
@@ -104,6 +107,7 @@ class DiagnosticResult:
             evidence_needed=data.get("evidence_needed"),
             safety_warnings=data.get("safety_warnings", []),
             relevant_manual_sections=data.get("relevant_manual_sections", []),
+            new_evidence=[Evidence.from_dict(item) for item in data.get("new_evidence", [])],
         )
 
 
@@ -155,18 +159,24 @@ class AgentState(TypedDict, total=False):
     evidence: list[Evidence]
     hypotheses: list[Hypothesis]
 
-    # Agent results, updated each turn
+    # The latest diagnosis persists across turns, so a later turn can record or confirm it.
+    # The action result belongs to the turn that produced it.
     diagnostic_result: DiagnosticResult | None
     action_result: ActionResult | None
 
-    # Workflow control
+    # Workflow control. run_agent_workflow gives every user turn a new turn_id. The
+    # supervisor processes a turn once and records it in last_processed_turn, which
+    # prevents routing loops. turn_agent names the specialist that ran in this turn.
     next_agent: str | None
     pending_user_input: bool
-    # The supervisor skips a message it has already processed, which prevents routing loops
-    last_processed_message: str | None
+    turn_id: str | None
+    last_processed_turn: str | None
+    turn_agent: str | None
 
-    # Context
-    uploaded_media: list[dict[str, str]]
+    # Context. uploaded_media holds attachments not yet analyzed; the diagnostic node
+    # moves them to analyzed_media and their findings to evidence.
+    uploaded_media: list[dict[str, Any]]
+    analyzed_media: list[dict[str, Any]]
     session_start: datetime
     last_updated: datetime
 
@@ -188,8 +198,26 @@ def create_initial_state(session_id: str, user_id: str = "default_user") -> Agen
         action_result=None,
         next_agent=None,
         pending_user_input=False,
-        last_processed_message=None,
+        turn_id=None,
+        last_processed_turn=None,
+        turn_agent=None,
         uploaded_media=[],
+        analyzed_media=[],
         session_start=now,
         last_updated=now,
     )
+
+
+def media_key(media: dict[str, Any]) -> tuple[Any, Any]:
+    """Identity of an attachment: its stored path and size."""
+    return media.get("path"), media.get("size")
+
+
+def add_media(state: AgentState, media: dict[str, Any]) -> AgentState:
+    """Return a state with the attachment queued for analysis, unless it was seen before."""
+    seen = {
+        media_key(m) for m in [*state.get("uploaded_media", []), *state.get("analyzed_media", [])]
+    }
+    if media_key(media) in seen:
+        return state
+    return {**state, "uploaded_media": [*state.get("uploaded_media", []), media]}

@@ -10,7 +10,7 @@ import asyncio
 import streamlit as st
 
 from service_manual_rag.agents.session_manager import get_session_manager
-from service_manual_rag.agents.state import AgentState, DiagnosticResult, Hypothesis
+from service_manual_rag.agents.state import AgentState, DiagnosticResult, Hypothesis, add_media
 from service_manual_rag.agents.vlm_service import get_vlm_service
 from service_manual_rag.config import get_settings
 from service_manual_rag.utils.logging_config import get_logger
@@ -87,20 +87,21 @@ def start_new_session() -> None:
     st.session_state.chat_history = []
 
 
-def attach_media(state: AgentState, uploaded_files: list) -> None:
+def attach_media(state: AgentState, uploaded_files: list) -> AgentState:
+    """Queue new uploads for analysis. The uploader keeps its files across messages, so a
+    file already queued or analyzed in this session is not queued again."""
     vlm_service = get_vlm_service()
-    media = state.setdefault("uploaded_media", [])
     for uploaded_file in uploaded_files:
         file_bytes = uploaded_file.getvalue()
         path = vlm_service.save_media(file_bytes, f"{state['session_id']}_{uploaded_file.name}")
-        media.append(
-            {
-                "name": uploaded_file.name,
-                "path": path,
-                "type": uploaded_file.type,
-                "size": len(file_bytes),
-            }
-        )
+        entry = {
+            "name": uploaded_file.name,
+            "path": path,
+            "type": uploaded_file.type,
+            "size": len(file_bytes),
+        }
+        state = add_media(state, entry)
+    return state
 
 
 def process_message(user_input: str, uploaded_files: list) -> str:
@@ -110,7 +111,7 @@ def process_message(user_input: str, uploaded_files: list) -> str:
     state = get_agent_state()
     state.setdefault("messages", []).append({"role": "user", "content": user_input})
     if uploaded_files:
-        attach_media(state, uploaded_files)
+        state = attach_media(state, uploaded_files)
 
     updated_state = asyncio.run(run_agent_workflow(state))
     save_agent_state(updated_state)

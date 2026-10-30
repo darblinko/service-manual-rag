@@ -89,7 +89,11 @@ def test_agent_chat_page_answers_offline_from_the_indexed_manual():
     assert not app.exception
     reply = app.chat_message[-1]
     assert reply.name == "assistant"
-    assert "Fastener torque values" in " ".join(md.value for md in reply.markdown)
+    reply_text = " ".join(md.value for md in reply.markdown)
+    assert "Fastener torque values" in reply_text
+    assert "Impeller nut | M16 | 55 N·m" in reply_text
+    assert "could not find" not in reply_text.lower()
+    assert "Additional Information Needed" not in reply_text
 
 
 @pytest.mark.parametrize("path", SCRIPT_FILES, ids=lambda p: p.name)
