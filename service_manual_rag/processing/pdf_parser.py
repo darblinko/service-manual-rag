@@ -108,6 +108,13 @@ class PDFParser:
                 parsed_elem = self._convert_element(element)
                 if parsed_elem:
                     parsed_elements.append(parsed_elem)
+            if not parsed_elements:
+                raise ValueError(
+                    f"No text was extracted from {file_path.name} with strategy "
+                    f"{self.strategy!r}. Unstructured returns no elements when its NLTK data "
+                    "(punkt_tab, averaged_perceptron_tagger_eng) is missing or the PDF has no "
+                    "text layer."
+                )
 
             # Extract document metadata
             doc_metadata = self._extract_document_metadata(file_path, elements)

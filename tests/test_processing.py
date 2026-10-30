@@ -1,9 +1,13 @@
+import sys
+import types
+
 import pytest
 
 from service_manual_rag.processing import (
     ChunkLevel,
     HierarchicalChunker,
     MarkdownParser,
+    PDFParser,
     ProcessingPipeline,
 )
 
@@ -111,3 +115,69 @@ def test_pipeline_requires_oem_and_model(tmp_path):
     path = write_manual(tmp_path, "## Safety\n\nWear gloves.\n")
     with pytest.raises(ValueError, match="OEM and model"):
         ProcessingPipeline().process(path)
+
+
+class FakeMetadata:
+    def __init__(self, page_number):
+        self.page_number = page_number
+
+    def to_dict(self):
+        return {"page_number": self.page_number}
+
+
+class Title:
+    def __init__(self, text, page_number):
+        self.text = text
+        self.metadata = FakeMetadata(page_number)
+
+    def __str__(self):
+        return self.text
+
+
+class NarrativeText(Title):
+    pass
+
+
+def install_fake_partition_pdf(monkeypatch, elements):
+    """Stand in for unstructured.partition.pdf, which the dev extra does not install."""
+    calls = []
+
+    def partition_pdf(filename, strategy, **options):
+        calls.append(strategy)
+        return elements
+
+    pdf_module = types.ModuleType("unstructured.partition.pdf")
+    pdf_module.partition_pdf = partition_pdf
+    monkeypatch.setitem(sys.modules, "unstructured", types.ModuleType("unstructured"))
+    monkeypatch.setitem(
+        sys.modules, "unstructured.partition", types.ModuleType("unstructured.partition")
+    )
+    monkeypatch.setitem(sys.modules, "unstructured.partition.pdf", pdf_module)
+    return calls
+
+
+def test_pdf_parser_converts_unstructured_elements(monkeypatch, tmp_path):
+    pdf = tmp_path / "manual.pdf"
+    pdf.write_bytes(b"%PDF-1.4")
+    calls = install_fake_partition_pdf(
+        monkeypatch,
+        [Title("Oil System", 3), NarrativeText("Check the oil level.", 4)],
+    )
+
+    document = PDFParser(strategy="fast").parse(pdf)
+
+    assert calls == ["fast"]
+    assert [(e.type, e.content, e.page_number) for e in document.elements] == [
+        ("title", "Oil System", 3),
+        ("text", "Check the oil level.", 4),
+    ]
+    assert document.total_pages == 4
+
+
+def test_pdf_parser_rejects_a_pdf_with_no_extracted_text(monkeypatch, tmp_path):
+    pdf = tmp_path / "scanned.pdf"
+    pdf.write_bytes(b"%PDF-1.4")
+    install_fake_partition_pdf(monkeypatch, [])
+
+    with pytest.raises(ValueError, match="No text was extracted from scanned.pdf"):
+        PDFParser(strategy="fast").parse(pdf)
