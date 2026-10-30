@@ -78,12 +78,15 @@ def show_graph_tab(impact: dict | None) -> None:
             "GRAPH_ENABLED=true and the document was processed with it enabled."
         )
         return
-    columns = st.columns(3)
+    columns = st.columns(4)
     columns[0].metric("Sections", impact["sections"])
     columns[1].metric("Components", impact["components"])
-    columns[2].metric("Other manuals for this equipment", impact["other_manuals"])
+    columns[2].metric("Entities from this manual only", impact["entities"])
+    columns[3].metric("Other manuals for this equipment", impact["other_manuals"])
     if impact["other_manuals"] == 0:
-        st.warning("This is the only manual for its Equipment node. Deleting it orphans that node.")
+        st.warning(
+            "This is the only manual for its Equipment node. Deleting it also deletes that node."
+        )
 
 
 def show_vector_tab(manager: DocumentManager, document: dict) -> None:
@@ -101,6 +104,10 @@ def show_delete_section(manager: DocumentManager, document: dict, impact: dict |
         lines = [f"- {document['chunk_count']} chunks from the vector database"]
         if impact is not None:
             lines.append(f"- the Manual node and {impact['sections']} Section nodes from Neo4j")
+            lines.append(
+                f"- {impact['entities']} extracted entities that no other document supports; "
+                "entities shared with other documents stay"
+            )
         st.warning("Deletion is permanent. This removes:\n\n" + "\n".join(lines))
 
         confirm = st.checkbox(

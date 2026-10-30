@@ -30,6 +30,33 @@ DETACH DELETE m
 RETURN nodes_deleted
 """
 
+# Entities extracted only from this document. Equipment counts when this is its only manual.
+ENTITY_IMPACT_QUERY = """
+MATCH (n)
+WHERE coalesce(n.doc_ids, []) = [$doc_id] AND NOT n:Manual AND NOT n:Section
+RETURN count(n) AS entity_count
+"""
+
+ENTITY_DELETE_QUERY = """
+MATCH (n)
+WHERE coalesce(n.doc_ids, []) = [$doc_id]
+DETACH DELETE n
+RETURN count(n) AS nodes_deleted
+"""
+
+# Entities that other documents also support drop this document from doc_ids, and
+# equipment_ids is rebuilt from the equipment of the documents that remain.
+ENTITY_PROVENANCE_UPDATE_QUERY = """
+MATCH (n)
+WHERE $doc_id IN coalesce(n.doc_ids, [])
+WITH n, [d IN n.doc_ids WHERE d <> $doc_id] AS remaining
+OPTIONAL MATCH (e:Equipment)-[:HAS_MANUAL]->(m:Manual)
+WHERE m.id IN remaining
+WITH n, remaining, collect(DISTINCT e.id) AS remaining_equipment
+SET n.doc_ids = remaining, n.equipment_ids = remaining_equipment
+RETURN count(n) AS nodes_updated
+"""
+
 
 def summarize_document(doc_id: str, payloads: list[dict[str, Any]]) -> dict[str, Any]:
     """Build one document record from the payloads of its chunks."""
@@ -99,20 +126,33 @@ class DocumentManager:
         rows = self.neo4j.execute_query(GRAPH_IMPACT_QUERY, {"doc_id": doc_id})
         if not rows:
             return None
+        entity_rows = self.neo4j.execute_query(ENTITY_IMPACT_QUERY, {"doc_id": doc_id})
         return {
             "sections": rows[0].get("section_count", 0),
             "components": rows[0].get("component_count", 0),
             "other_manuals": rows[0].get("other_manuals_count", 0),
+            "entities": entity_rows[0].get("entity_count", 0) if entity_rows else 0,
         }
 
     def delete_document(self, doc_id: str) -> dict[str, int | None]:
-        """Delete the document's chunks and, when the graph is enabled, its Manual and Sections."""
+        """Delete the document's chunks and, when the graph is enabled, its graph knowledge.
+
+        The graph loses the Manual, its Sections and every entity extracted only from this
+        document. Entities that other documents also support stay, without this document.
+        """
         point_ids = [point["id"] for point in self._scroll_all({"doc_id": doc_id})]
         if point_ids:
             self.qdrant.delete_points(point_ids)
 
         graph_nodes_deleted = None
         if self.neo4j is not None:
-            rows = self.neo4j.execute_query(GRAPH_DELETE_QUERY, {"doc_id": doc_id}, write=True)
-            graph_nodes_deleted = rows[0].get("nodes_deleted", 0) if rows else 0
+            graph_nodes_deleted = sum(
+                self._run_graph_write(query, doc_id, "nodes_deleted")
+                for query in (GRAPH_DELETE_QUERY, ENTITY_DELETE_QUERY)
+            )
+            self._run_graph_write(ENTITY_PROVENANCE_UPDATE_QUERY, doc_id, "nodes_updated")
         return {"chunks_deleted": len(point_ids), "graph_nodes_deleted": graph_nodes_deleted}
+
+    def _run_graph_write(self, query: str, doc_id: str, count_key: str) -> int:
+        rows = self.neo4j.execute_query(query, {"doc_id": doc_id}, write=True)
+        return rows[0].get(count_key, 0) if rows else 0
