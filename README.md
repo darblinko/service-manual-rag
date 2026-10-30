@@ -178,7 +178,10 @@ uv run service-manual-rag ingest --manuals path/to/manuals --reset
 uv run service-manual-rag ingest --reset --graph   # also build the Neo4j graph (OpenAI, Neo4j)
 uv run service-manual-rag ask "What is the torque for the CP-200 impeller nut?"
 uv run service-manual-rag evaluate --golden-set sample_data/golden_set.json
+uv run service-manual-rag ingest --manuals path/to/pdfs --oem Acme --model P-9
 ```
+
+`ingest` reads the manufacturer and model from Markdown front matter. PDFs have none, so `--oem` and `--model` set both for every file in `--manuals` and override front matter. Every file is parsed before `--reset` deletes the collection or the graph, so a missing directory or an unparseable file leaves the existing indexes in place. Ingesting a document again replaces its indexed chunks.
 
 Full test suite and lint:
 

@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from service_manual_rag.cli import main
+from service_manual_rag.vector_db import QdrantManager
 
 SAMPLE_DATA = Path(__file__).parents[1] / "sample_data"
 
@@ -91,3 +92,34 @@ def test_ingest_with_graph_populates_each_manual(monkeypatch, capsys):
     assert resets == [True]
     assert len(populator.batches) == len(list(manuals.glob("*.md")))
     assert "graph" in capsys.readouterr().out
+
+
+def test_failed_ingest_does_not_reset_the_existing_index(monkeypatch, tmp_path, capsys):
+    assert main(["ingest", "--manuals", str(SAMPLE_DATA / "manuals"), "--reset"]) == 0
+    indexed = QdrantManager().count_points()
+
+    def refuse_open(reset=False):
+        raise AssertionError("graph populator opened before the input was validated")
+
+    monkeypatch.setattr("service_manual_rag.cli.open_graph_populator", refuse_open)
+    missing = str(tmp_path / "missing")
+    assert main(["ingest", "--manuals", missing, "--reset"]) == 1
+    assert main(["ingest", "--manuals", missing, "--reset", "--graph"]) == 1
+
+    assert QdrantManager().count_points() == indexed
+    assert "Error" in capsys.readouterr().err
+
+
+def test_ingest_takes_oem_and_model_from_arguments(tmp_path, capsys):
+    manuals = tmp_path / "manuals"
+    manuals.mkdir()
+    (manuals / "plain.md").write_text(
+        "# Maintenance\n\n## Seals\n\nReplace the shaft seal every 2000 hours.\n",
+        encoding="utf-8",
+    )
+    assert main(["ingest", "--manuals", str(manuals)]) == 1
+
+    exit_code = main(["ingest", "--manuals", str(manuals), "--oem", "Acme", "--model", "P-9"])
+
+    assert exit_code == 0
+    assert QdrantManager().count_points(filters={"oem": "Acme", "model": "P-9"}) > 0
