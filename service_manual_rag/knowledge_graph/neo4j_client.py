@@ -14,6 +14,8 @@ from service_manual_rag.utils.logging_config import get_logger
 
 from .graph_schema import (
     CYPHER_QUERIES,
+    FULLTEXT_INDEX_NAME,
+    FULLTEXT_PROPERTIES,
     NodeType,
     RelationshipType,
     create_constraints,
@@ -141,6 +143,7 @@ class Neo4JManager:
             bool: True once every constraint and index exists
         """
         with self.get_session() as session:
+            self._drop_outdated_fulltext_index(session)
             logger.info("Creating constraints")
             for constraint in create_constraints():
                 self._run_schema_statement(session, constraint)
@@ -151,6 +154,17 @@ class Neo4JManager:
 
         logger.info("Schema initialized")
         return True
+
+    @staticmethod
+    def _drop_outdated_fulltext_index(session: Session) -> None:
+        """Drop the full-text index when it covers other properties, so it is recreated."""
+        record = session.run(
+            "SHOW FULLTEXT INDEXES YIELD name, properties WHERE name = $name RETURN properties",
+            {"name": FULLTEXT_INDEX_NAME},
+        ).single()
+        if record is not None and set(record["properties"]) != set(FULLTEXT_PROPERTIES):
+            logger.warning(f"Recreating {FULLTEXT_INDEX_NAME} for the current property list")
+            session.run(f"DROP INDEX {FULLTEXT_INDEX_NAME}").consume()
 
     @staticmethod
     def _run_schema_statement(session: Session, statement: str) -> None:

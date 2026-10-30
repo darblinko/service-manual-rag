@@ -91,6 +91,36 @@ def create_constraints() -> list[str]:
     return constraints
 
 
+FULLTEXT_INDEX_NAME = "fulltext_index"
+FULLTEXT_LABELS = (
+    "Equipment|Manual|Section|Component|Procedure|Symptom|Solution|FailureMode|SafetyHazard|"
+    "Zone|Part|Tool|Skill"
+)
+FULLTEXT_PROPERTIES = (
+    "name",
+    "title",
+    "description",
+    "part_name",
+    "fix_description",
+    "content",
+    "warning",
+    "tool_name",
+    "skill_name",
+    "action_type",
+    "steps",
+    "difficulty",
+)
+
+
+def fulltext_index_statement() -> str:
+    """CREATE statement for the full-text index that graph retrieval queries."""
+    properties = ", ".join(f"n.{name}" for name in FULLTEXT_PROPERTIES)
+    return (
+        f"CREATE FULLTEXT INDEX {FULLTEXT_INDEX_NAME} IF NOT EXISTS "
+        f"FOR (n:{FULLTEXT_LABELS}) ON EACH [{properties}]"
+    )
+
+
 def create_indexes() -> list[str]:
     """Create Cypher queries for indexes.
 
@@ -130,11 +160,7 @@ def create_indexes() -> list[str]:
             f"FOR (sq:{NodeType.SEARCH_QUERY.value}) ON (sq.timestamp)"
         ),
         # Fulltext index for text search across all node types
-        (
-            "CREATE FULLTEXT INDEX fulltext_index IF NOT EXISTS "
-            "FOR (n:Equipment|Manual|Section|Component|Procedure|Symptom|Solution|FailureMode|SafetyHazard|Zone|Part|Tool|Skill) "
-            "ON EACH [n.name, n.title, n.description, n.part_name, n.fix_description, n.content, n.warning, n.tool_name, n.skill_name]"
-        ),
+        fulltext_index_statement(),
         # Phase 1: Core Diagnostic Chain indexes
         (
             f"CREATE INDEX failure_mode_category IF NOT EXISTS "
