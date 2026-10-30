@@ -60,7 +60,7 @@ class VectorIndexer:
         )
         points = [
             {"id": chunk.chunk_id, "vector": vector, "payload": chunk_payload(chunk)}
-            for chunk, vector in zip(selected, embeddings)
+            for chunk, vector in zip(selected, embeddings, strict=True)
         ]
         upserted = self.qdrant_manager.upsert_points(points, batch_size=batch_size)
 

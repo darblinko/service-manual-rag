@@ -137,7 +137,7 @@ class GraphPopulator:
         """Create components and safety hazards extracted from section chunks."""
         counts = Counter()
         total = len(chunks)
-        for index, (chunk, entities) in enumerate(zip(chunks, entities_list), start=1):
+        for index, (chunk, entities) in enumerate(zip(chunks, entities_list, strict=True), start=1):
             counts.update(self._create_components(entities, chunk))
             counts.update(self._create_standalone_hazards(entities))
 
@@ -153,7 +153,7 @@ class GraphPopulator:
         """Create all detailed entities and relationships extracted from semantic chunks."""
         counts = Counter()
         total = len(chunks)
-        for index, (chunk, entities) in enumerate(zip(chunks, entities_list), start=1):
+        for index, (chunk, entities) in enumerate(zip(chunks, entities_list, strict=True), start=1):
             counts.update(self._create_components(entities, chunk))
             counts.update(self._create_procedures(entities))
             failure_mode_ids, failure_mode_counts = self._create_failure_modes(entities)

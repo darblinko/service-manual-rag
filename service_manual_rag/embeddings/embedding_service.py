@@ -145,7 +145,7 @@ class EmbeddingService:
                 model=self.model,
                 dimensions=self.dimensions,
             )
-            for index, item in zip(uncached_indices, response.data):
+            for index, item in zip(uncached_indices, response.data, strict=True):
                 results[index] = item.embedding
                 self._cache_embedding(batch[index], item.embedding)
             self._request_times.append(time.time())

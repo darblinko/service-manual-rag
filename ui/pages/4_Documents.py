@@ -64,7 +64,7 @@ def show_library_table(documents: list[dict]) -> None:
 
 def show_chunks_tab(document: dict) -> None:
     columns = st.columns(len(LEVEL_LABELS))
-    for column, (level, label) in zip(columns, LEVEL_LABELS.items()):
+    for column, (level, label) in zip(columns, LEVEL_LABELS.items(), strict=True):
         column.metric(label, document["chunks_by_level"].get(level, 0))
     st.caption(f"Document ID: {document['doc_id']}")
     with st.expander("About chunk levels"):

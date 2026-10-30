@@ -135,7 +135,7 @@ class ContextualReranker:
 
         scored = [
             {**result, "cross_encoder_score": float(score), "reranked": True}
-            for result, score in zip(results, scores)
+            for result, score in zip(results, scores, strict=True)
         ]
         reranked = sorted(scored, key=lambda x: x["cross_encoder_score"], reverse=True)
 
@@ -229,5 +229,5 @@ class ContextualReranker:
 
         return [
             self.rerank(query, results, context, top_k)
-            for query, results, context in zip(queries, results_list, contexts)
+            for query, results, context in zip(queries, results_list, contexts, strict=True)
         ]

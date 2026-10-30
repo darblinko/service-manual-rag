@@ -1,3 +1,5 @@
+import pytest
+
 from service_manual_rag.processing import (
     ChunkLevel,
     HierarchicalChunker,
@@ -107,9 +109,5 @@ def test_pipeline_takes_oem_and_model_from_front_matter(tmp_path):
 
 def test_pipeline_requires_oem_and_model(tmp_path):
     path = write_manual(tmp_path, "## Safety\n\nWear gloves.\n")
-    try:
+    with pytest.raises(ValueError, match="OEM and model"):
         ProcessingPipeline().process(path)
-    except ValueError as error:
-        assert "OEM and model" in str(error)
-    else:
-        raise AssertionError("expected ValueError")
