@@ -1,7 +1,8 @@
 """Conversational troubleshooting with the supervisor, diagnostic and action agents.
 
-The agent workflow needs OpenAI mode and the ``agents`` extra (langgraph). The
-knowledge graph panel needs GRAPH_ENABLED=true and the optional streamlit-agraph package.
+The agent workflow needs the ``agents`` extra (langgraph). In offline mode the agents use
+keyword rules and the answers are manual excerpts. The knowledge graph panel needs
+GRAPH_ENABLED=true and the optional streamlit-agraph package.
 """
 
 import asyncio
@@ -16,10 +17,10 @@ from service_manual_rag.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
-OPENAI_REQUIRED_MESSAGE = (
-    "The agent chat needs OpenAI mode. Set OPENAI_API_KEY in the environment or in .env, "
-    "and do not set LLM_MODE=offline. Restart the app after the change. "
-    "The Query page works in offline mode."
+OFFLINE_MESSAGE = (
+    "Offline mode: the supervisor and the diagnostic agent use keyword rules, and answers "
+    "are excerpts from the indexed manuals. Set OPENAI_API_KEY and restart the app for "
+    "model-generated answers and hypotheses."
 )
 # Errors LocalSessionStore raises when a session file cannot be written or read
 SESSION_ERRORS = (OSError, TypeError, ValueError, KeyError)
@@ -374,8 +375,7 @@ st.set_page_config(page_title="Agent Chat", layout="wide")
 st.title("Agent Chat")
 
 if not get_settings().use_openai:
-    st.info(OPENAI_REQUIRED_MESSAGE)
-    st.stop()
+    st.info(OFFLINE_MESSAGE)
 
 st.markdown(
     """

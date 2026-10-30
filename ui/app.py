@@ -96,7 +96,7 @@ knowledge graph retrieval.
 1. **Process**: parse a .pdf, .md or .txt manual, chunk it and index it.
 2. **Query**: ask a question and get an answer with cited sources.
 3. **Documents**: view indexed documents and remove them.
-4. **Agent Chat**: conversational troubleshooting with the agent workflow (OpenAI mode only).
+4. **Agent Chat**: conversational troubleshooting with the agent workflow.
 
 Use the sidebar to switch pages.
 

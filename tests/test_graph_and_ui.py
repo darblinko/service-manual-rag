@@ -66,10 +66,21 @@ def test_home_page_shows_offline_mode():
     assert any(metric.value == "offline" for metric in app.metric)
 
 
-def test_agent_chat_page_explains_openai_requirement():
+def test_agent_chat_page_answers_offline_from_the_indexed_manual():
+    pytest.importorskip("langgraph")
+    _, chunks = ProcessingPipeline().process(SAMPLE_MANUAL)
+    VectorIndexer().index_chunks(chunks)
+
     app = run_page("pages/5_Agent_Chat.py")
     assert not app.exception
-    assert any("OPENAI_API_KEY" in info.value for info in app.info)
+    assert any("Offline mode" in info.value for info in app.info)
+
+    app.chat_input[0].set_value("What is the impeller nut torque on the ExampleCo CP-200?").run()
+
+    assert not app.exception
+    reply = app.chat_message[-1]
+    assert reply.name == "assistant"
+    assert "Fastener torque values" in " ".join(md.value for md in reply.markdown)
 
 
 @pytest.mark.parametrize("path", SCRIPT_FILES, ids=lambda p: p.name)
