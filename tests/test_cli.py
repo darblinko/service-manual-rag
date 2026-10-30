@@ -72,6 +72,9 @@ class RecordingPopulator:
         self.batches.append(chunks)
         return {"sections_created": len(chunks)}
 
+    def close(self):
+        self.closed = True
+
 
 def test_ingest_with_graph_populates_each_manual(monkeypatch, capsys):
     populator = RecordingPopulator()

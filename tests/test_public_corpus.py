@@ -177,6 +177,9 @@ class RecordingPopulator:
         self.batches.append(chunks)
         return {"sections_created": len(chunks)}
 
+    def close(self):
+        self.closed = True
+
 
 def test_ingest_passes_every_chunk_level_to_the_graph_populator(tmp_path):
     populator = RecordingPopulator()

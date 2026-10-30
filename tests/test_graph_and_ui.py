@@ -1,5 +1,6 @@
 """Offline checks for the graph clients, the Streamlit pages and the maintenance scripts."""
 
+import asyncio
 import importlib.util
 import py_compile
 from pathlib import Path
@@ -10,7 +11,7 @@ from neo4j import GraphDatabase
 
 from service_manual_rag.config import MissingCredentialError
 from service_manual_rag.embeddings import VectorIndexer, create_embedding_service
-from service_manual_rag.graph_builder import EntityExtractor
+from service_manual_rag.graph_builder import EntityExtractor, GraphPopulator
 from service_manual_rag.knowledge_graph import Neo4JManager
 from service_manual_rag.processing import ProcessingPipeline
 from service_manual_rag.vector_db import QdrantManager
@@ -158,3 +159,33 @@ def test_hosted_evaluation_requires_openai_and_graph(capsys, tmp_path):
     )
     assert exit_code == 1
     assert "LLM_MODE=openai" in capsys.readouterr().err
+
+
+class LoopRecordingExtractor:
+    def __init__(self):
+        self.loops = []
+
+    async def extract_entities_batch(self, chunks):
+        self.loops.append(asyncio.get_running_loop())
+        return [{} for _ in chunks]
+
+
+class ClosingGraph:
+    closed = False
+
+    def close(self):
+        self.closed = True
+
+
+def test_graph_populator_runs_every_populate_call_on_one_event_loop():
+    extractor = LoopRecordingExtractor()
+    graph = ClosingGraph()
+    populator = GraphPopulator(neo4j_manager=graph, entity_extractor=extractor)
+
+    populator.populate([])
+    populator.populate([])
+    populator.close()
+
+    assert len(extractor.loops) == 4
+    assert len(set(map(id, extractor.loops))) == 1
+    assert graph.closed

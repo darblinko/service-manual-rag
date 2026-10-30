@@ -57,12 +57,26 @@ class GraphPopulator:
         """
         self.neo4j = neo4j_manager or Neo4JManager()
         self.extractor = entity_extractor or EntityExtractor()
+        self._runner: asyncio.Runner | None = None
 
         logger.info("GraphPopulator initialized")
 
     def populate(self, chunks: list[Chunk]) -> dict:
-        """Run populate_from_chunks to completion from synchronous code."""
-        return asyncio.run(self.populate_from_chunks(chunks))
+        """Run populate_from_chunks to completion from synchronous code.
+
+        Every call runs on the same event loop, because the extractor's async OpenAI
+        client keeps connections bound to the loop that opened them.
+        """
+        if self._runner is None:
+            self._runner = asyncio.Runner()
+        return self._runner.run(self.populate_from_chunks(chunks))
+
+    def close(self) -> None:
+        """Close the event loop used by populate and the Neo4j driver."""
+        if self._runner is not None:
+            self._runner.close()
+            self._runner = None
+        self.neo4j.close()
 
     async def populate_from_chunks(self, chunks: list[Chunk]) -> dict:
         """Populate graph from chunks with parallel entity extraction.

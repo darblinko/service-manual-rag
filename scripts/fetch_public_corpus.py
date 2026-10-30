@@ -137,6 +137,8 @@ def ingest_documents(
         print(f"{path.name}: {stats['indexed_chunks']} of {stats['total_chunks']} chunks indexed")
         if populator is not None:
             print(f"{path.name}: graph {populator.populate(chunks)}")
+    if populator is not None:
+        populator.close()
     print(f"Indexed {totals['indexed']} chunks from {totals['files']} PDF files")
     return totals
 

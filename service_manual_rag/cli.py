@@ -45,6 +45,8 @@ def ingest(manuals: Path, levels: list[int], reset: bool, graph: bool = False) -
         if populator is not None:
             graph_stats = populator.populate(chunks)
             print(f"{path.name}: graph {graph_stats}")
+    if populator is not None:
+        populator.close()
     totals["embedding_model"] = indexer.embedding_service.model
     print(
         f"Indexed {totals['indexed']} chunks from {totals['files']} files "
