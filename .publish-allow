@@ -1,0 +1,2 @@
+secret-assignment tests/test_agents.py The literal "placeholder-key" is a fake credential; the tests check that offline mode refuses remote calls even when a key is set
+secret-assignment tests/test_graph_and_ui.py The literal "placeholder-key" is a fake credential; the test checks that offline mode refuses entity extraction even when a key is set
