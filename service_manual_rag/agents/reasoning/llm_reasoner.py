@@ -43,6 +43,8 @@ Use exactly this format for each hypothesis:
 """
 
 DEFAULT_CONFIDENCE = 0.6
+# Upper bound on the characters of each manual passage placed in the prompt
+MAX_PASSAGE_CHARS = 1200
 MIN_CONFIDENCE = 0.1
 MAX_CONFIDENCE = 0.95
 
@@ -123,15 +125,23 @@ class LLMDiagnosticReasoner:
 
     @staticmethod
     def _format_retrieved_docs(docs: list[dict]) -> str:
+        """Number each passage, name its manual section, and include its bounded body."""
         if not docs:
             return "None"
         formatted_docs = []
-        for doc in docs:
-            first_line = (doc.get("content") or "No content").split("\n")[0]
-            sources = doc.get("sources") or ["Unknown"]
-            source_text = ", ".join(str(source) for source in sources)
-            formatted_docs.append(f"- Source: {source_text}, Snippet: {first_line}")
-        return "\n".join(formatted_docs)
+        for number, doc in enumerate(docs, start=1):
+            metadata = doc.get("metadata") or {}
+            label_parts = [
+                str(value)
+                for value in (metadata.get("model"), metadata.get("section_name"), doc.get("id"))
+                if value
+            ]
+            label = ", ".join(label_parts) or "Unknown source"
+            body = (doc.get("content") or "No content").strip()
+            if len(body) > MAX_PASSAGE_CHARS:
+                body = body[:MAX_PASSAGE_CHARS].rstrip() + " [truncated]"
+            formatted_docs.append(f"[Passage {number}] {label}\n{body}")
+        return "\n\n".join(formatted_docs)
 
     @staticmethod
     def _parse_llm_response(response_content: str) -> list[Hypothesis]:
