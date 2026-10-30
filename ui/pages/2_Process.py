@@ -1,6 +1,5 @@
 """Parse a manual, index its chunks and, when enabled, populate the knowledge graph."""
 
-import asyncio
 import tempfile
 import time
 from pathlib import Path
@@ -41,9 +40,14 @@ def save_upload(uploaded_file, directory: Path) -> Path:
 
 
 def populate_graph(chunks: list) -> dict:
-    from service_manual_rag.graph_builder import GraphPopulator
+    """Populate the graph after making sure its constraints and full-text index exist."""
+    from service_manual_rag import graph_builder
 
-    return asyncio.run(GraphPopulator().populate_from_chunks(chunks))
+    populator = graph_builder.open_graph_populator(reset=False)
+    try:
+        return populator.populate(chunks)
+    finally:
+        populator.close()
 
 
 def process_upload(uploaded_file, oem: str, model: str, strategy: str, extract_tables: bool):
