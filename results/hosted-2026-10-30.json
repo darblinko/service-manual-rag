@@ -1,0 +1,1977 @@
+{
+  "date": "2026-10-30",
+  "git": {
+    "commit": "a2f53c1",
+    "tracked_changes": false
+  },
+  "chat_model": "gpt-4.1-mini",
+  "judge": "openai:gpt-4.1-mini",
+  "embedding_model": "text-embedding-3-large",
+  "embedding_dimensions": 3072,
+  "corpus": [
+    {
+      "path": "sample_data/manuals/exampleco-cp-200-centrifugal-pump.md",
+      "sha256": "2cfd168bc1ce6e91179b8af9a1051bac907bb7399ae47d6a25b1477860a1df2f"
+    },
+    {
+      "path": "sample_data/manuals/exampleco-em-30-induction-motor.md",
+      "sha256": "e6187fd08ca4a92f60ae9b07b873aa6470f90bba2799b82e1e868715e766a353"
+    },
+    {
+      "path": "sample_data/manuals/exampleco-rsc-15-rotary-screw-compressor.md",
+      "sha256": "575cffb5a4c15efb3b29069bf5cf1dd7137a999b059aaaeb4a9fb2f84343811a"
+    }
+  ],
+  "indexed_chunks": 55,
+  "graph": {
+    "Equipment_count": 3,
+    "Manual_count": 3,
+    "Section_count": 76,
+    "Component_count": 398,
+    "Procedure_count": 117,
+    "Symptom_count": 68,
+    "Solution_count": 225,
+    "FailureMode_count": 113,
+    "SafetyHazard_count": 115,
+    "Part_count": 94,
+    "Tool_count": 39,
+    "Skill_count": 20,
+    "total_nodes": 1271,
+    "total_relationships": 1031
+  },
+  "golden_set": "sample_data/golden_set.json",
+  "total_questions": 15,
+  "retrieval_settings": {
+    "vector_top_k": 10,
+    "graph_top_k": 10,
+    "final_top_k": 5,
+    "rrf_k": 10,
+    "vector_weight": 0.6,
+    "graph_weight": 0.4
+  },
+  "runs": {
+    "vector": {
+      "retrieval_mode": "vector",
+      "usage": {
+        "chat_calls": 75,
+        "prompt_tokens": 58897,
+        "completion_tokens": 13662
+      },
+      "judge": "openai:gpt-4.1-mini",
+      "generator": "gpt-4.1-mini",
+      "total_questions": 15,
+      "failed_judgments": 0,
+      "graph_errors": [],
+      "aggregate": {
+        "context_relevance": 0.9,
+        "answer_relevance": 1.0,
+        "faithfulness": 0.8667,
+        "correctness": 0.9867,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.9222,
+        "model_precision": 0.7067
+      },
+      "by_category": {
+        "maintenance": {
+          "context_relevance": 0.9,
+          "answer_relevance": 1.0,
+          "faithfulness": 0.6667,
+          "correctness": 0.9333,
+          "section_hit": 1.0,
+          "reciprocal_rank": 1.0,
+          "model_precision": 0.6667
+        },
+        "operation": {
+          "context_relevance": 0.9667,
+          "answer_relevance": 1.0,
+          "faithfulness": 1.0,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 0.7778,
+          "model_precision": 0.6667
+        },
+        "safety": {
+          "context_relevance": 0.8667,
+          "answer_relevance": 1.0,
+          "faithfulness": 1.0,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 1.0,
+          "model_precision": 0.6667
+        },
+        "specifications": {
+          "context_relevance": 1.0,
+          "answer_relevance": 1.0,
+          "faithfulness": 1.0,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 0.8333,
+          "model_precision": 0.8667
+        },
+        "troubleshooting": {
+          "context_relevance": 0.7667,
+          "answer_relevance": 1.0,
+          "faithfulness": 0.6667,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 1.0,
+          "model_precision": 0.6667
+        }
+      },
+      "per_question": [
+        {
+          "id": "cp200-01",
+          "category": "safety",
+          "question": "Can I pick up the whole CP-200 pump and motor by the motor eyebolt, and what capacity hoist do I need?",
+          "answer": "1. Direct answer to the question:  \nNo, you must not lift the whole CP-200 pump and motor unit by the motor eyebolt alone. The motor eyebolt is rated for lifting the motor only, not the complete unit. Lifting the entire unit by the motor eyebolt will cause the unit to tilt toward the pump end and overload the eyebolt, which is unsafe.\n\n2. Relevant part numbers:  \n- Vent plug: EC-200-115 (not directly related to lifting but part of CP-200)  \n- Impeller nut: EC-200-131 (mentioned for service but not lifting)  \n\n3. Step-by-step procedure to lift the complete CP-200 unit safely:  \n- Use slings and a hoist rated for at least 150 kg (the complete unit weighs 98 kg).  \n- Place one sling around the motor frame next to the adapter.  \n- Place the second sling around the pump casing next to the discharge flange.  \n- Lift until the unit hangs level, then lower it onto the foundation bolts.  \n\n4. Safety warnings:  \n- Do not lift the complete unit by the motor eyebolt alone to avoid overloading and potential failure.  \n- Use a hoist and slings rated for at least 150 kg to safely handle the 98 kg unit.  \n- Ensure the unit hangs level during lifting to prevent tilting and damage.  \n\n5. Source citations:  \n- Lifting the pump unit and motor eyebolt rating: [Source 1]  \n- Weight of the complete unit and motor: [Source 1]  \n- Hoist capacity and sling placement: [Source 1]  \n- Motor eyebolt rating and lifting restrictions: [Source 2]",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Lifting the pump unit"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Fastener torque values"
+            },
+            {
+              "model": "CP-200",
+              "section": "CP-200 End-Suction Centrifugal Pump Service Manual"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-02",
+          "category": "specifications",
+          "question": "What do I torque the impeller nut and the casing bolts to on the CP-200?",
+          "answer": "1. Direct answer to the question:\n\n- Torque the impeller nut to **55 N\u00b7m**.\n- Torque the casing bolts (8 off M12) to **70 N\u00b7m**, tightening in two stages: first to 35 N\u00b7m, then to 70 N\u00b7m in a cross pattern.\n\n2. Relevant part numbers:\n\n- Impeller nut part number: **EC-200-131** (replace each time it is removed because it has a nylon locking insert).\n- Casing gasket part number: **EC-200-118** (used when refitting the casing).\n\n3. Step-by-step procedure for mechanical seal replacement and torquing (excerpt relevant to torques):\n\n- Remove the 8 M12 casing bolts.\n- Pull the motor, adapter, and impeller out as one assembly.\n- Hold the impeller with a strap wrench and remove the impeller nut (right-hand thread).\n- After replacing the seal and refitting components, fit the new impeller nut and torque it to 55 N\u00b7m.\n- Fit the new casing gasket and refit the assembly.\n- Tighten the casing bolts in two stages: first to 35 N\u00b7m, then to 70 N\u00b7m, following a cross pattern.\n- Turn the fan by hand to confirm the shaft turns freely.\n- Prime the pump before starting.\n\n4. Safety warnings:\n\n- The impeller nut has a nylon locking insert and must be replaced each time it is removed to ensure secure fastening [Source 1].\n- The pump is not self-priming; running dry will destroy the seal faces within 30 seconds. Always prime the pump before starting [Source 4].\n- Follow lockout and tagout procedures before disassembly to ensure safety [Source 5].\n\n5. Source citations:\n\n- Torque values: [Source 1]\n- Mechanical seal replacement and torquing procedure: [Source 5]\n- Priming and first start warnings: [Source 4]\n\n---\n\n**Summary:**\n\n| Fastener        | Size | Torque  | Notes                                        |\n|-----------------|-------|---------|----------------------------------------------|\n| Impeller nut    | M16   | 55 N\u00b7m  | Replace nut (EC-200-131) each time removed   |\n| Casing bolts (8)| M12   | 70 N\u00b7m  | Tighten in two stages: 35 N\u00b7m then 70 N\u00b7m in cross pattern |\n\nAlways prime the pump before starting to avoid seal damage.",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Fastener torque values"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Tightening torques"
+            },
+            {
+              "model": "EM-30",
+              "section": "Terminal and fastener torques"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Mechanical seal replacement"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-03",
+          "category": "maintenance",
+          "question": "How often does the drive end motor bearing on the CP-200 need grease, and how much goes in?",
+          "answer": "1. **Frequency and quantity of grease for the CP-200 drive end motor bearing:**\n\n- The drive end bearing (6308 C3) on the CP-200 motor must be regreased every **4,000 operating hours** under normal conditions.\n- If the liquid temperature exceeds 70 \u00b0C or the ambient temperature exceeds 35 \u00b0C, the regreasing interval should be reduced to **2,000 operating hours**.\n- The amount of grease to inject is **10 g of lithium complex NLGI 2 grease**.\n\n2. **Relevant part numbers:**\n\n- Drive end bearing: **6308 C3** (regreasable) [Source 1]\n- Grease type: Lithium complex NLGI 2 grease (mineral base oil) [Source 1, Source 4]\n\n3. **Step-by-step regreasing procedure:**\n\n   1. Clean the grease nipple on the drive end bearing cover.\n   2. Remove the grease outlet plug located at the bottom of the bearing cover.\n   3. With the pump running, inject 10 g of grease. This corresponds to 8 strokes of a grease gun delivering 1.25 g per stroke.\n   4. Run the pump for 1 hour with the outlet plug removed.\n   5. After 1 hour, refit the grease outlet plug.\n\n4. **Safety and operational warnings:**\n\n- Do not mix greases with different thickener types.\n- The bearing housing temperature can rise by 10 to 15 \u00b0C for a few hours after regreasing.\n- The bearing housing temperature must **not exceed 80 \u00b0C** after regreasing.\n- Ensure the pump is running during grease injection to avoid damage.\n\n5. **Source citations:**\n\n- Bearing lubrication interval and procedure: [Source 1]\n- Maintenance schedule confirming 4,000 operating hours interval: [Source 5]\n\n---\n\n**Summary:**  \nRegrease the CP-200 motor drive end bearing (6308 C3) every 4,000 hours (or 2,000 hours if high temperature conditions apply) with 10 g of lithium complex NLGI 2 grease, following the detailed procedure above to maintain bearing health and avoid overheating.",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Bearing lubrication interval"
+            },
+            {
+              "model": "EM-30",
+              "section": "Bearing regreasing procedure"
+            },
+            {
+              "model": "EM-30",
+              "section": "Bearing replacement"
+            },
+            {
+              "model": "EM-30",
+              "section": "Mechanical and bearing data"
+            },
+            {
+              "model": "CP-200",
+              "section": "Maintenance schedule"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 0.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.4
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-04",
+          "category": "troubleshooting",
+          "question": "After the motor on the CP-200 was reconnected, the pump only makes about half its normal pressure. What is the likely cause and the fix?",
+          "answer": "1. Direct answer to the question:  \nThe likely cause is reverse rotation of the pump motor after the electrical reconnection. This results in the pump delivering about 50% of its rated head.\n\n2. Relevant part numbers:  \nNo specific part number is needed for this fix, but note the motor terminals where the phase conductors are connected.\n\n3. Step-by-step procedure to correct the issue:  \n- Isolate the power supply to the motor to ensure safety.  \n- Swap any two of the three phase conductors at the motor terminals to reverse the motor rotation direction.  \n- Confirm the fan on the motor end turns clockwise when viewed from the fan end (correct rotation).  \n- Restore power and verify that the pump now delivers the full rated discharge pressure.\n\n4. Safety warnings:  \n- Always isolate and lock out the power supply before working on electrical connections to prevent electric shock or accidental motor start.  \n- Confirm motor rotation direction before running the pump under load to avoid damage.\n\n5. Source citations:  \nThis diagnosis and corrective action are from the troubleshooting table for low discharge pressure in [Source 1].",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Low discharge pressure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Motor protection relay trips"
+            },
+            {
+              "model": "CP-200",
+              "section": "Excessive noise and vibration"
+            },
+            {
+              "model": "CP-200",
+              "section": "CP-200 End-Suction Centrifugal Pump Service Manual"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-05",
+          "category": "operation",
+          "question": "What is the lowest flow the CP-200 can run at continuously, and how long can it run against a shut discharge valve?",
+          "answer": "1. Direct answer to the question:\n\n- The lowest flow the CP-200 pump can run at continuously is **10 m\u00b3/h** (minimum continuous flow).\n- The pump can run against a closed discharge valve for a maximum of **2 minutes**.\n\n2. Relevant part numbers:  \n- No specific part numbers are directly related to operating limits or running time against a closed valve.\n\n3. Step-by-step procedures:  \n- Not applicable specifically for operating limits, but to avoid damage, use the discharge valve to adjust flow and **do not throttle the suction valve** to maintain proper flow rates [Source 1].\n\n4. Safety warnings:  \n- Running below the minimum continuous flow causes water in the casing to heat and potentially flash to steam, which can damage the pump.  \n- Running above the maximum flow causes cavitation.  \n- Do not throttle the suction valve to control flow; use the discharge valve instead.  \n- Running against a closed discharge valve longer than 2 minutes can cause damage to the pump [Source 1].\n\n5. Source citations:  \n- Operating limits table and warnings: [Source 1] (CP-200, Operating limits)",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Operating limits"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Low discharge pressure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Shutdown and frost protection"
+            },
+            {
+              "model": "CP-200",
+              "section": "CP-200 End-Suction Centrifugal Pump Service Manual"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-01",
+          "category": "safety",
+          "question": "I stopped and locked out the RSC-15, but the tank gauge still shows pressure after a couple of minutes. What do I do before opening the oil filler?",
+          "answer": "1. Direct answer to the question:  \nIf the separator tank gauge still shows pressure 2 minutes after stopping and locking out the RSC-15 compressor, you must open the manual vent valve (part number EC-15-318) slowly and keep it open until the gauge reads 0 bar before opening the oil filler plug.\n\n2. Relevant part numbers:  \n- Manual vent valve: EC-15-318  \n- Oil filler plug (no specific part number given)  \n\n3. Step-by-step procedure:  \n- After stopping the compressor and performing electrical isolation and lockout as per procedure, check the separator tank gauge.  \n- If the gauge does not read 0 bar within 2 minutes, suspect a faulty blowdown valve.  \n- Slowly open the manual vent valve (EC-15-318) to vent the tank pressure.  \n- Keep the manual vent valve open until the gauge reads 0 bar.  \n- Wait at least 5 minutes after the stop and pressure release before opening the oil filler plug.  \n\n4. Safety warnings:  \n- The separator tank holds compressed air and oil at temperatures up to 95 \u00b0C after stop. Electrical isolation alone does not make the compressor safe to open.  \n- Allow 30 minutes for the air end, discharge pipe, and tank to cool below 50 \u00b0C before touching them.  \n- Do not direct compressed air at skin or use it to clean clothing.  \n- Always fit a personal padlock and tag during isolation.  \n\n5. Source citations:  \n- Isolation and depressurization procedure, including steps for venting pressure and waiting times before opening the oil filler plug [Source 1].  \n- Oil and oil filter change procedure confirming the wait times and isolation steps [Source 4].",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Isolation and depressurization procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Lockout and tagout procedure"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Safety valve function"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Oil and oil filter change"
+            },
+            {
+              "model": "EM-30",
+              "section": "Electrical isolation and lockout"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-02",
+          "category": "specifications",
+          "question": "How much oil do I need for an oil change on the RSC-15, and what grade is it?",
+          "answer": "1. **Oil quantity and grade for an oil change on the RSC-15:**\n\n- Quantity: **8.0 liters** of oil are required for an oil change.\n- Grade: **ISO VG 46 synthetic compressor oil**.\n\nThis quantity accounts for approximately 1.0 liter of oil remaining in the cooler, air end, and hoses after draining, as the total oil capacity is 9.0 liters but only 8.0 liters are replaced during an oil change.  \n[Source 1], [Source 2]\n\n2. **Relevant part numbers:**\n\n- Oil filter part number: **EC-15-120** (to be replaced during oil change)  \n[Source 1]\n\n3. **Step-by-step oil change procedure:**\n\n1. Run the compressor loaded until the oil temperature reaches at least 60 \u00b0C to ensure full drainage.\n2. Stop, isolate, and depressurize the compressor following the isolation and depressurization procedure.\n3. Loosen the oil filler plug one turn to release residual pressure, then remove it.\n4. Open the tank drain valve and cooler drain plug; drain the oil into a container with at least 12 L capacity.\n5. Remove the oil filter (EC-15-120) using a filter wrench.\n6. Oil the gasket of the new oil filter. Screw it on until the gasket contacts the seat, then tighten a further 3/4 turn by hand.\n7. Close the tank drain valve. Refit the cooler drain plug with a new sealing ring and tighten to **30 N\u00b7m** torque.\n8. Fill the compressor with **8.0 L of ISO VG 46 synthetic compressor oil** and refit the filler plug.\n9. Run the compressor loaded for 5 minutes, then stop and wait 5 minutes.\n10. Check the oil level with the compressor stopped and depressurized for at least 5 minutes; top up oil to the MAX mark if necessary.\n11. Reset the service counter in menu S01.\n\n[Source 1], [Source 2], [Source 5]\n\n4. **Safety warnings and notes:**\n\n- Ensure the compressor is fully stopped, isolated, and depressurized before starting the oil change to avoid injury.\n- Use a container with at least 12 L capacity to safely collect drained oil.\n- Always replace the sealing ring on the cooler drain plug when refitting.\n- Do not overfill the oil above the MAX mark on the sight glass.\n- Do not mix synthetic oil with mineral oil as this causes foaming and increased oil carryover.\n- Tighten oil filter by hand plus 3/4 turn; do not overtighten.\n[Source 1], [Source 2], [Source 5]\n\n---\n\n**Summary:** For an oil change on the RSC-15 compressor, drain the old oil and replace it with 8.0 liters of ISO VG 46 synthetic compressor oil, replacing the oil filter (EC-15-120) as well. Follow the detailed procedure above and observe all safety precautions.",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Oil and oil filter change"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Lubricant and fill quantities"
+            },
+            {
+              "model": "RSC-15",
+              "section": "RSC-15 Oil-Flooded Rotary Screw Air Compressor Service Manual"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Compressor rating data"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Tightening torques"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 0.5,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-03",
+          "category": "maintenance",
+          "question": "When I fit a new separator element in the RSC-15, where should the scavenge tube end sit and how tight do the cover bolts go?",
+          "answer": "1. **Direct answer:**\n\n- The scavenge tube end should be positioned 5 mm above the bottom of the new separator element to avoid blocking the oil return.\n- The separator tank cover bolts (8 off, size M12) should be tightened to 70 N\u00b7m in a cross pattern.\n\n2. **Relevant part numbers:**\n\n- Separator element: EC-15-130\n- Separator tank cover bolts: M12 (8 bolts)\n\n3. **Step-by-step procedure for fitting a new separator element (summarized):**\n\n1. Stop, isolate, and depressurize the compressor. Confirm the tank gauge reads 0 bar before proceeding.  \n2. Disconnect the scavenge line and outlet pipe from the tank cover.  \n3. Remove the 8 M12 cover bolts and lift the cover off.  \n4. Lift out the old separator element (EC-15-130) and remove both gaskets. Clean the sealing faces.  \n5. Fit the new separator element with new gaskets. Do not remove the metal staples in the gaskets as they earth the element to the tank.  \n6. Refit the cover and tighten the 8 M12 bolts in a cross pattern to 70 N\u00b7m.  \n7. Set the scavenge tube so that its end is 5 mm above the bottom of the element. Ensure the tube does not touch the bottom to avoid blocking oil return.  \n8. Reconnect the pipes and check the cover joint for leaks at 8 bar.\n\n4. **Safety warnings:**\n\n- Always stop, isolate, and depressurize the compressor before opening the separator tank. Confirm the tank gauge reads 0 bar to avoid injury from compressed air or hot oil.  \n- Follow the isolation and depressurization procedure carefully, including waiting times and electrical isolation steps ([Source 3]).  \n- Do not remove the metal staples in the gaskets as they provide electrical earthing.  \n- After refitting, check the cover joint for leaks at 8 bar to ensure safe operation.\n\n5. **Source citations:**\n\n- Separator element replacement procedure and scavenge tube positioning: [Source 1]  \n- Tightening torque for separator tank cover bolts: [Source 2]  \n- Isolation and depressurization safety procedure: [Source 3]",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Separator element replacement"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Tightening torques"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Isolation and depressurization procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Mechanical seal replacement"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Safety valve function"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.8,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-04",
+          "category": "troubleshooting",
+          "question": "The RSC-15 shut down and the display shows E06. What does that mean and what should I check?",
+          "answer": "1. Direct answer to the question:  \nThe E06 shutdown code on the RSC-15 indicates that the pressure transducer signal is outside the expected range of 4 to 20 mA. This means the compressor has stopped because it is not receiving a valid pressure signal.\n\n2. What to check:  \n- Inspect the pressure transducer cable and connector for any damage, loose connections, or corrosion.  \n- If the wiring and connectors are intact but the signal remains out of range, the pressure transducer itself may be faulty.\n\n3. Corrective action and part numbers:  \n- Repair or replace any damaged cables or connectors.  \n- If the signal problem persists, replace the pressure transducer with part number **EC-15-410**.\n\n4. Step-by-step procedure:  \na. Power down the compressor and ensure it is safe to work on electrical components.  \nb. Visually inspect the pressure transducer cable and connector for damage or poor connections.  \nc. Measure the signal output from the transducer to verify if it is within 4 to 20 mA range.  \nd. Repair or replace the cable or connector if faulty.  \ne. If the signal is still out of range, remove and replace the pressure transducer with part EC-15-410.  \nf. Power up the compressor and verify the alarm clears and normal operation resumes.  \ng. Press RESET on the controller after the cause is cleared to restart the compressor.\n\n5. Safety warnings:  \n- Always ensure the compressor is powered down and locked out before inspecting or replacing electrical components to avoid electric shock or injury.  \n- Follow all standard electrical safety procedures and use appropriate personal protective equipment.\n\n6. Source citations:  \n- Controller alarm codes, E06 description and corrective action: [Source 1]  \n- General safety and service procedures: implied from standard practice and [Source 4] disclaimer",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Controller alarm codes"
+            },
+            {
+              "model": "EM-30",
+              "section": "Overheating and thermistor trips"
+            },
+            {
+              "model": "RSC-15",
+              "section": "High discharge temperature"
+            },
+            {
+              "model": "RSC-15",
+              "section": "RSC-15 Oil-Flooded Rotary Screw Air Compressor Service Manual"
+            },
+            {
+              "model": "CP-200",
+              "section": "Motor protection relay trips"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.3,
+            "answer_relevance": 1.0,
+            "faithfulness": 0.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-05",
+          "category": "operation",
+          "question": "What load and unload pressures does the RSC-15 ship with, and at what pressure does it trip on high pressure?",
+          "answer": "1. **Direct answer:**\n\n- The RSC-15 ships with a **load pressure** set at **7.0 bar** (factory value).\n- The **unload pressure** is set at **8.0 bar** (factory value).\n- The high pressure shutdown trips at **8.6 bar** (fixed value).\n\n2. **Relevant part numbers:**\n\n- The safety valve related to pressure relief on the separator tank is part number **EC-15-305** (though this valve opens at 9.5 bar, above the high pressure shutdown setting).\n\n3. **Step-by-step procedure to adjust load and unload pressures:**\n\n- Enter the level 1 password on the controller.\n- Edit parameter **P02** to adjust the load pressure within the range 5.0 to 7.5 bar.\n- Edit parameter **P03** to adjust the unload pressure within the range 5.5 to 8.0 bar.\n- Note: The controller will reject any unload pressure setting above 8.0 bar.\n- Keep in mind that lowering the unload pressure by 1 bar reduces power consumption by approximately 7%.\n\n4. **Safety warnings:**\n\n- The high pressure shutdown is fixed at 8.6 bar and cannot be adjusted.\n- The safety valve (EC-15-305) on the separator tank opens at 9.5 bar to protect the tank, which has a design pressure of 11 bar.\n- The safety valve must be tested monthly by pulling the test lever for 2 seconds when the tank pressure is above 7 bar; air must discharge and the valve must reseat after release.\n- Do not repair or adjust the safety valve; replace it if leaking, seal broken, or after 5 years in service.\n\n5. **Source citations:**\n\n- Load and unload pressure factory values and adjustable ranges: [Source 1]\n- High pressure shutdown value: [Source 1]\n- Safety valve function and pressure relief details: [Source 2]\n\n---\n\n**Summary:**\n\n| Parameter               | Factory Value | Adjustable Range    |\n|------------------------|---------------|--------------------|\n| Load pressure (P02)    | 7.0 bar       | 5.0 to 7.5 bar     |\n| Unload pressure (P03)  | 8.0 bar       | 5.5 to 8.0 bar     |\n| High pressure shutdown | 8.6 bar       | Fixed (non-adjustable) |\n\nThe safety valve (EC-15-305) opens at 9.5 bar as an additional safety measure.",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Load and unload pressure settings"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Safety valve function"
+            },
+            {
+              "model": "RSC-15",
+              "section": "RSC-15 Oil-Flooded Rotary Screw Air Compressor Service Manual"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Controller start and stop sequence"
+            },
+            {
+              "model": "CP-200",
+              "section": "Motor protection relay trips"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-01",
+          "category": "safety",
+          "question": "The EM-30 runs from a variable speed drive. After isolating, how long do I wait before opening the terminal box, and which terminals do I prove dead?",
+          "answer": "1. **Direct answer:**\n\nAfter isolating the EM-30 motor that runs from a variable speed drive, you must wait at least **10 minutes** for the drive DC link capacitors to discharge before opening the terminal box. You must prove that no voltage is present at the motor terminals **U1, V1, W1** and at the heater terminals **HE1 and HE2**.\n\n2. **Relevant part numbers:**\n\n- Cover gasket: **EC-30-405** (for refitting the terminal box cover after work)\n- Thermistor terminals: **TP1 and TP2** (do not test voltage here to avoid damage)\n- Heater terminals: **HE1 and HE2**\n\n3. **Step-by-step procedure:**\n\n- Stop the driven machine and motor from the normal control station.\n- Open the motor isolator and fit a personal padlock and tag with your name, date, and reason for isolation.\n- Isolate the heater supply at its own circuit breaker and lock it.\n- Since the motor is fed by a variable speed drive, wait at least **10 minutes** after isolation to allow the DC link capacitors to discharge.\n- Use a tested voltage indicator (verify it on a known live source before and after) to prove that no voltage is present at the motor terminals **U1, V1, W1** and heater terminals **HE1, HE2**.\n- Only then open the terminal box.\n\n4. **Safety warnings:**\n\n- Always test the voltage indicator on a known live source before and after the voltage check to ensure it is working correctly.\n- Keep the coupling guard and fan cover fitted whenever the motor can be energized.\n- The motor frame can reach 80 \u00b0C at full load; do not touch it for 30 minutes after stopping.\n- Do not connect test equipment to thermistor terminals TP1 and TP2, as voltages above 2.5 V will damage them.\n\n5. **Source citations:**\n\n- Electrical isolation and lockout procedure including wait time and voltage checks: [Source 1] (EM-30, Electrical isolation and lockout)\n- Terminal box connections and terminal identification: [Source 5] (EM-30, Terminal box connections)\n\n---\n\n**Summary:**  \nWait at least 10 minutes after isolating the variable speed drive feeding the EM-30 motor before opening the terminal box. Prove absence of voltage at terminals U1, V1, W1 and heater terminals HE1, HE2 with a tested voltage indicator. Follow lockout/tagout and safety procedures as described.",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Electrical isolation and lockout"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Isolation and depressurization procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Lockout and tagout procedure"
+            },
+            {
+              "model": "EM-30",
+              "section": "Insulation resistance test before first start"
+            },
+            {
+              "model": "EM-30",
+              "section": "Terminal box connections"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.7,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-02",
+          "category": "specifications",
+          "question": "What full load current and speed should the EM-30 nameplate show?",
+          "answer": "1. **Direct answer:**\n\n- The EM-30 nameplate should show a **full load current of 55 A at 400 V**.\n- The rated full load speed should be **1,475 rpm**.\n\n2. **Relevant part numbers:**\n\n- Not directly applicable to the nameplate data, but for reference:\n  - Bearings: Drive end bearing kit EC-30-201, Non-drive end bearing kit EC-30-202 [Source 5].\n\n3. **Step-by-step procedure to verify or interpret the nameplate data:**\n\n- Locate the electrical rating plate on the motor frame.\n- Confirm the rated voltage and frequency: 400 V delta or 690 V star, 50 Hz.\n- Check the rated current for 400 V operation: 55 A.\n- Check the rated speed: 1,475 rpm.\n- Ensure the motor is connected according to the voltage specified (delta for 400 V, star for 690 V).\n- Verify that the motor is operated within the ambient temperature and altitude limits (-20 to 40 \u00b0C, up to 1,000 m altitude) to ensure the nameplate ratings are valid [Source 1].\n\n4. **Safety warnings:**\n\n- Always ensure the motor is de-energized before inspecting or handling the nameplate.\n- When lifting or moving the motor, follow the lifting instructions carefully to avoid injury or damage (use eyebolts fully screwed to shoulder, use spreader beam, do not lift with attached pump or gearbox) [Source 2].\n\n5. **Source citations:**\n\n- Full load current and speed values are from the Electrical rating plate data [Source 1].\n- Lifting and handling safety warnings from [Source 2].\n- Bearing kits referenced from Mechanical and bearing data [Source 5].\n\n---\n\n**Summary:**  \nThe EM-30 motor nameplate should indicate a rated full load current of 55 A at 400 V and a rated speed of 1,475 rpm, as per the motor's electrical rating plate data [Source 1].",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Electrical rating plate data"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            },
+            {
+              "model": "EM-30",
+              "section": "EM-30 Three-Phase TEFC Induction Motor Service Manual"
+            },
+            {
+              "model": "EM-30",
+              "section": "Starting methods and starting limits"
+            },
+            {
+              "model": "EM-30",
+              "section": "Mechanical and bearing data"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-03",
+          "category": "maintenance",
+          "question": "How much grease goes into each EM-30 bearing, and how often?",
+          "answer": "1. **Grease quantity and interval for EM-30 bearings:**\n\n- **Drive end bearing (6312 C3):**  \n  - Grease quantity: 20 g  \n  - Regrease interval: every 8,000 operating hours or every 2 years, whichever comes first  \n  - Interval is halved if the shaft is vertical or ambient temperature exceeds 40 \u00b0C\n\n- **Non-drive end bearing (6212 C3):**  \n  - Grease quantity: 15 g  \n  - Same regrease interval and conditions as the drive end bearing\n\n- **Grease type:** Lithium complex NLGI 2 grease with mineral base oil viscosity of 100 to 150 mm\u00b2/s at 40 \u00b0C\n\n- **Bearing kits:**  \n  - Drive end bearing kit: EC-30-201  \n  - Non-drive end bearing kit: EC-30-202\n\n2. **Step-by-step regreasing procedure:**\n\n1. Clean the grease nipples on both bearings and open the grease outlet plugs at the bottom of each end shield.  \n2. With the motor running, inject 20 g of grease at the drive end bearing and 15 g at the non-drive end bearing.  \n   - If greasing while running is not possible, inject half the grease quantity at standstill, run the motor for 1 hour, then inject the remaining half.  \n3. Run the motor for 2 hours with the grease outlet plugs open, then close them.  \n4. Monitor bearing temperature: it may rise by up to 15 \u00b0C after regreasing and should return to normal within 8 hours.\n\n3. **Safety and handling notes:**\n\n- Use only the specified lithium complex NLGI 2 grease to avoid compatibility issues.  \n- Do not exceed the recommended grease quantities to prevent overheating.  \n- Always clean grease nipples before injecting grease to avoid contamination.  \n- When lifting the motor for bearing replacement or maintenance, use both eyebolts with a spreader beam and ensure slings hang vertically or within 30\u00b0 of vertical.  \n- Remove transport locking devices before installation and refit them during transport.  \n- Follow electrical isolation and lockout procedures before disassembly.\n\n---\n\n**References:**  \n- Bearing regreasing procedure and quantities: [Source 1]  \n- Bearing types and kits: [Source 4]  \n- Lifting and handling precautions: [Source 5]",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Bearing regreasing procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Bearing lubrication interval"
+            },
+            {
+              "model": "EM-30",
+              "section": "Bearing replacement"
+            },
+            {
+              "model": "EM-30",
+              "section": "Mechanical and bearing data"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.8,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-04",
+          "category": "troubleshooting",
+          "question": "At what vibration level should I raise an alarm on the EM-30, and when do I shut it down?",
+          "answer": "1. **Direct answer:**\n\nFor the EM-30 motor, you should raise an alarm if the RMS vibration velocity on the bearing housings (measured in horizontal, vertical, and axial directions from 10 to 1,000 Hz) exceeds **4.5 mm/s**. You should shut down the motor if the RMS vibration velocity reaches or exceeds **7.1 mm/s**.\n\n2. **Relevant part numbers:**\n\n- If bearing current damage is suspected (often indicated by whining noise), fit an insulated non-drive end bearing using kit **EC-30-215**.\n- If bearing damage is confirmed (rumbling or grinding noise and rising bearing temperature), replace both bearings (no specific part number provided in the context).\n\n3. **Step-by-step procedure:**\n\n- Measure RMS vibration velocity on both bearing housings in three directions (horizontal, vertical, axial) over the frequency range 10 to 1,000 Hz.\n- Compare the measured values to the limits:\n  - Below 2.8 mm/s: Acceptable for new or rebuilt motor.\n  - Between 2.8 mm/s and 4.5 mm/s: Monitor closely.\n  - Above 4.5 mm/s: Raise an alarm and investigate.\n  - Above 7.1 mm/s: Shut down the motor immediately.\n- Investigate possible causes based on symptom and vibration pattern:\n  - High axial vibration at 1 and 2 times running speed: Check and realign motor to within 0.05 mm offset.\n  - High radial vibration at 24.6 Hz: Check coupling balance; rotor balanced with half key.\n  - Rumbling/grinding noise and rising bearing temperature: Replace both bearings.\n  - Whining noise on motor fed by a drive: Fit insulated bearing kit EC-30-215.\n- Perform corrective actions accordingly.\n\n4. **Safety warnings:**\n\n- Always shut down the motor immediately if vibration exceeds the shutdown limit to prevent catastrophic bearing or motor failure.\n- When replacing bearings or fitting the insulated bearing kit, ensure proper lockout/tagout procedures are followed to avoid injury.\n- Use correct lifting procedures when handling the motor (see [Source 3]) to avoid accidents.\n\n5. **Source citations:**\n\n- Vibration limits and corrective actions: [Source 1] (EM-30, Bearing noise and vibration)\n- Bearing kit part number: [Source 1]\n- Lifting and handling safety: [Source 3]\n\n---\n\n**Summary:**  \nRaise an alarm on the EM-30 motor if RMS vibration velocity exceeds 4.5 mm/s and shut it down at or above 7.1 mm/s. Investigate and correct causes such as misalignment, unbalance, or bearing damage as detailed in [Source 1]. Use kit EC-30-215 if bearing current damage is suspected. Always follow safety procedures during inspection and repair.",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Bearing noise and vibration"
+            },
+            {
+              "model": "CP-200",
+              "section": "Excessive noise and vibration"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Controller alarm codes"
+            },
+            {
+              "model": "CP-200",
+              "section": "Operating limits"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.4
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-05",
+          "category": "operation",
+          "question": "How many times an hour can I start the EM-30, and how many back to back starts are allowed?",
+          "answer": "1. Direct answer to the question:\n\n- The EM-30 motor can be started no more than 6 times per hour, and these starts must be evenly spaced.\n- No more than 2 consecutive starts are allowed from cold, or 1 start from hot operating temperature.\n- After consecutive starts, a wait time of 30 minutes is required before the next start.\n\n2. Relevant part numbers:  \n- No specific part numbers are provided related to starting limits for the EM-30.\n\n3. Step-by-step procedures:  \n- When using star-delta starting (typical for EM-30), set the star-delta timer to change over at about 95% of rated speed, typically after 6 to 10 seconds, to keep load torque below 149 N\u00b7m during acceleration.  \n- Ensure starting current and torque limits are respected as per the starting method used.\n\n4. Safety warnings:  \n- Exceeding the starting limits can cause excessive wear or damage to the motor and connected equipment.  \n- Follow the specified wait times and limits to avoid overheating and mechanical stress.\n\n5. Source citations:  \n- Starting limits and methods, including starts per hour and consecutive starts: [Source 3] (EM-30, Starting methods and starting limits)",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Controller start and stop sequence"
+            },
+            {
+              "model": "CP-200",
+              "section": "Operating limits"
+            },
+            {
+              "model": "EM-30",
+              "section": "Starting methods and starting limits"
+            },
+            {
+              "model": "CP-200",
+              "section": "Maintenance schedule"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 0.3333333333333333,
+            "model_precision": 0.2
+          },
+          "errors": []
+        }
+      ]
+    },
+    "graph": {
+      "retrieval_mode": "graph",
+      "usage": {
+        "chat_calls": 75,
+        "prompt_tokens": 35213,
+        "completion_tokens": 12065
+      },
+      "judge": "openai:gpt-4.1-mini",
+      "generator": "gpt-4.1-mini",
+      "total_questions": 15,
+      "failed_judgments": 0,
+      "graph_errors": [],
+      "aggregate": {
+        "context_relevance": 0.5533,
+        "answer_relevance": 0.9067,
+        "faithfulness": 1.0,
+        "correctness": 0.3467,
+        "section_hit": 0.0,
+        "reciprocal_rank": 0.0,
+        "model_precision": 0.0
+      },
+      "by_category": {
+        "maintenance": {
+          "context_relevance": 0.5333,
+          "answer_relevance": 0.9333,
+          "faithfulness": 1.0,
+          "correctness": 0.3667,
+          "section_hit": 0.0,
+          "reciprocal_rank": 0.0,
+          "model_precision": 0.0
+        },
+        "operation": {
+          "context_relevance": 0.8333,
+          "answer_relevance": 0.9,
+          "faithfulness": 1.0,
+          "correctness": 0.4333,
+          "section_hit": 0.0,
+          "reciprocal_rank": 0.0,
+          "model_precision": 0.0
+        },
+        "safety": {
+          "context_relevance": 0.9333,
+          "answer_relevance": 0.9667,
+          "faithfulness": 1.0,
+          "correctness": 0.8333,
+          "section_hit": 0.0,
+          "reciprocal_rank": 0.0,
+          "model_precision": 0.0
+        },
+        "specifications": {
+          "context_relevance": 0.2,
+          "answer_relevance": 0.8,
+          "faithfulness": 1.0,
+          "correctness": 0.0,
+          "section_hit": 0.0,
+          "reciprocal_rank": 0.0,
+          "model_precision": 0.0
+        },
+        "troubleshooting": {
+          "context_relevance": 0.2667,
+          "answer_relevance": 0.9333,
+          "faithfulness": 1.0,
+          "correctness": 0.1,
+          "section_hit": 0.0,
+          "reciprocal_rank": 0.0,
+          "model_precision": 0.0
+        }
+      },
+      "per_question": [
+        {
+          "id": "cp200-01",
+          "category": "safety",
+          "question": "Can I pick up the whole CP-200 pump and motor by the motor eyebolt, and what capacity hoist do I need?",
+          "answer": "1. Direct answer:  \nNo, you should not lift the entire CP-200 pump and motor assembly by the motor eyebolt. The motor eyebolt is rated only for lifting the motor alone. Lifting the complete unit by the motor eyebolt will cause the unit to tilt toward the pump end and overload the eyebolt, creating a high risk of mechanical failure and injury.  \n\n2. Relevant part numbers:  \n- Motor eyebolt (no specific part number provided) [Source 3]  \n- Motor model CP-200 [Source 4]  \n- CP-200 end-suction centrifugal pump [Source 2]  \n\n3. Step-by-step procedures:  \n- Do not use the motor eyebolt to lift the entire pump and motor assembly.  \n- Use appropriate lifting points designed for the full assembly, typically lifting lugs or eyebolts on the pump casing or frame, if available.  \n- Confirm the rated lifting capacity of the lifting points before hoisting.  \n- If lifting the motor alone, the motor eyebolt may be used, ensuring the load does not exceed the eyebolt\u2019s rated capacity.  \n\n4. Safety warnings:  \n- Lifting the complete unit by the motor eyebolt causes the unit to tilt toward the pump end and overload the eyebolt, which is a high severity hazard [Source 1].  \n- Always verify lifting points and rated capacities before lifting heavy equipment.  \n- Use proper rigging techniques and certified lifting equipment.  \n\n5. Source citations:  \n- Eyebolt overload hazard and lifting limitations: [Source 1]  \n- Motor eyebolt rated for motor only: [Source 3]  \n- Motor and pump model CP-200 identification: [Source 2], [Source 4]  \n- Pump casing reference: [Source 5]  \n\nSummary: For lifting the CP-200 pump and motor assembly, do not use the motor eyebolt. Use designated lifting points rated for the full assembly to avoid overload and potential accidents.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.8,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-02",
+          "category": "specifications",
+          "question": "What do I torque the impeller nut and the casing bolts to on the CP-200?",
+          "answer": "Based on the provided context from the service manuals, there is no specific torque value mentioned for the impeller nut or the casing bolts on the CP-200.\n\n### Summary:\n1. **Impeller Nut:**\n   - Part Number: EC-200-131\n   - Description: Nut securing the impeller, right-hand thread, with nylon locking insert [Source 1, Source 2, Source 4].\n   - **Torque value: Not specified in the provided context.**\n\n2. **Casing Bolts (or foundation bolts):**\n   - Description: Bolts used to secure the motor to the base [Source 5].\n   - **Torque value: Not specified in the provided context.**\n\n### Additional Notes:\n- There is a mention of a load torque exceeding the motor's star starting torque of 149 N\u00b7m [Source 3], but this relates to motor starting torque, not the torque specification for fasteners.\n- No step-by-step procedures or safety warnings related to torquing the impeller nut or casing bolts are provided in the available context.\n\n### Recommendation:\n- Refer to the full CP-200 service manual or manufacturer\u2019s torque specification chart for exact torque values.\n- Always use a calibrated torque wrench.\n- Follow standard safety precautions when working on rotating equipment, such as ensuring the motor is de-energized and locked out before maintenance.\n\n---\n\n**References:**\n\n- Impeller nut details: [Source 1], [Source 2], [Source 4]  \n- Foundation bolts: [Source 5]  \n- Load torque warning (not related to torque specs): [Source 3]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.3,
+            "answer_relevance": 0.9,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-03",
+          "category": "maintenance",
+          "question": "How often does the drive end motor bearing on the CP-200 need grease, and how much goes in?",
+          "answer": "The provided context does not specify the greasing interval or the amount of grease required for the drive end motor bearing on the CP-200 end-suction centrifugal pump.\n\nHowever, based on the information available:\n\n1. The drive end motor bearing is described as a \"regreasable bearing on the drive end\" with part number **6308 C3** [Source 1].\n\n2. The pump model is the **CP-200 End-Suction Centrifugal Pump** [Source 2].\n\n3. There is no detailed procedure, greasing frequency, or grease quantity mentioned in the context for this bearing.\n\n---\n\n### Summary:\n- **Drive end motor bearing part number:** 6308 C3 [Source 1]\n- **Pump model:** CP-200 [Source 2]\n- **Bearing type:** Regreasable bearing on the drive end [Source 1]\n\n### Missing Information:\n- Greasing interval (how often to grease)\n- Amount of grease to apply\n- Specific greasing procedure\n- Safety warnings related to greasing\n\n---\n\n### Recommendation:\nTo determine the exact greasing interval and quantity, consult the full CP-200 pump service manual or the motor manufacturer's bearing maintenance guidelines. Typically, regreasable bearings on motors are greased based on operating hours or temperature conditions, and the amount of grease is usually a small quantity sufficient to purge old grease without overfilling.\n\n---\n\nIf you need detailed procedures or safety warnings, please provide additional context or refer to the complete service manual for the CP-200 pump or the motor.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.6,
+            "answer_relevance": 0.8,
+            "faithfulness": 1.0,
+            "correctness": 0.2,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-04",
+          "category": "troubleshooting",
+          "question": "After the motor on the CP-200 was reconnected, the pump only makes about half its normal pressure. What is the likely cause and the fix?",
+          "answer": "1. Direct answer to the question:  \nThe likely cause of the CP-200 pump producing only about half its normal pressure after motor reconnection is the presence of air in the pump casing or suction line. Air escaping at the vent plug causes a loss of pressure, reducing pump performance significantly.\n\n2. Relevant part numbers:  \n- Pump model: CP-200 End-Suction Centrifugal Pump (part number: CP-200) [Source 2]  \n- Pump casing (main casing of the CP-200 pump) [Source 1]  \n- Motor carrying the impeller on its shaft extension [Source 4]\n\n3. Step-by-step procedure to fix the issue:  \na. Ensure the pump and motor are safely powered down and locked out before any inspection or maintenance.  \nb. Check the vent plug on the pump casing for air escaping, indicating air trapped inside the casing or suction line [Source 3].  \nc. Bleed the air from the pump casing and suction line by loosening the vent plug carefully to allow trapped air to escape until a steady flow of liquid is observed.  \nd. Tighten the vent plug securely after bleeding air.  \ne. Inspect suction line connections and seals for leaks that may allow air ingress and repair as necessary.  \nf. Restart the pump and monitor pressure output to confirm restoration of normal pressure levels.  \ng. Additionally, verify that the pump is operating above the minimum continuous flow to avoid issues such as rumbling and fluctuating pressure [Source 5].\n\n4. Safety warnings:  \n- Always follow lockout/tagout procedures before servicing the pump or motor to prevent accidental startup.  \n- When venting air from the pump casing, be cautious of hot fluids or pressurized discharge that may cause injury.  \n- Use appropriate personal protective equipment (PPE) such as gloves and eye protection.\n\n5. Source citations:  \n- Air in casing or suction line causes loss of pressure: [Source 3]  \n- Pump model and casing details: [Source 1], [Source 2]  \n- Motor and impeller assembly: [Source 4]  \n- Flow below minimum causing pressure issues: [Source 5]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.8,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.3,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-05",
+          "category": "operation",
+          "question": "What is the lowest flow the CP-200 can run at continuously, and how long can it run against a shut discharge valve?",
+          "answer": "The provided context does not specify the exact value of the lowest flow at which the CP-200 pump can run continuously, nor does it state how long the CP-200 can run against a shut discharge valve.\n\nHowever, based on the information available:\n\n1. **Lowest Continuous Flow:**\n   - Operating the CP-200 pump below the minimum continuous flow causes issues such as rumbling, fluctuating pressure ([Source 3]) and can lead to casing overheating due to water heating and flashing to steam inside the casing ([Source 1]).\n   - This implies that the pump must be operated at or above a defined minimum continuous flow to avoid damage, but the exact flow rate is not provided.\n\n2. **Running Against a Shut Discharge Valve:**\n   - The discharge valve controls the pump's discharge flow ([Source 4]).\n   - Running the pump against a closed discharge valve would mean zero flow, which is below the minimum continuous flow and can cause severe casing overheating and damage ([Source 1]).\n   - No duration for safe operation under these conditions is given.\n\n3. **Relevant Part Numbers:**\n   - CP-200 End-Suction Centrifugal Pump: Part Number **CP-200** ([Source 2])\n   - Pump casing (main casing of CP-200): No part number provided ([Source 5])\n   - Discharge valve: No part number provided ([Source 4])\n\n4. **Safety Warnings:**\n   - Operating below minimum continuous flow can cause water in the pump casing to heat up and flash to steam, potentially damaging the pump ([Source 1]).\n   - Running the pump against a closed discharge valve (zero flow) is hazardous and can cause overheating and damage.\n\n5. **Procedures:**\n   - Since exact flow values and safe running times are not provided, the general procedure is to ensure the pump operates at or above its minimum continuous flow rate.\n   - Avoid running the pump with the discharge valve fully closed.\n   - Monitor flow and pressure to prevent conditions that cause rumbling, fluctuating pressure, or overheating.\n\n**Summary:**  \nThe exact minimum continuous flow rate and allowable run time against a closed discharge valve for the CP-200 pump are not specified in the provided context. Operating below minimum flow or against a closed discharge valve can cause serious damage due to overheating and steam formation in the casing. It is critical to maintain flow above the minimum continuous flow to ensure safe operation.\n\n---\n\n**References:**  \n- Low flow causing casing overheating and damage [Source 1]  \n- Flow below minimum continuous flow causing rumbling and pressure fluctuations [Source 3]  \n- CP-200 pump identification [Source 2]  \n- Discharge valve function [Source 4]  \n- Pump casing description [Source 5]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.7,
+            "answer_relevance": 0.8,
+            "faithfulness": 1.0,
+            "correctness": 0.3,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-01",
+          "category": "safety",
+          "question": "I stopped and locked out the RSC-15, but the tank gauge still shows pressure after a couple of minutes. What do I do before opening the oil filler?",
+          "answer": "1. Direct answer:  \nIf the separator tank gauge still shows pressure 2 minutes after stopping and locking out the RSC-15, you must first open the manual vent valve (part number EC-15-318) slowly and keep it open until the pressure gauge reads 0 bar before opening the oil filler.\n\n2. Relevant part numbers:  \n- Manual vent valve: EC-15-318  \n- Separator tank gauge: (no specific part number provided)\n\n3. Step-by-step procedure:  \na. Confirm the compressor is stopped and locked out.  \nb. Check the separator tank gauge; if it still shows pressure after 2 minutes, proceed.  \nc. Locate the manual vent valve (EC-15-318).  \nd. Open the manual vent valve slowly to vent the pressure.  \ne. Keep the vent valve open until the separator tank gauge reads 0 bar.  \nf. Once pressure is fully vented, it is safe to open the oil filler.\n\n4. Safety warnings:  \n- Ensure the compressor is properly locked out before venting pressure.  \n- Be cautious when venting pressure to avoid sudden releases.  \n- The motor frame can reach 80 \u00b0C at full load; avoid touching it for 30 minutes after stopping and use heat-resistant gloves if handling is required [Source 5].\n\n5. Source citations:  \n- Separator tank gauge pressure issue and venting procedure: [Source 1], [Source 3]  \n- Manual vent valve part number: [Source 3]  \n- Safety warning regarding motor temperature: [Source 5]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.9,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-02",
+          "category": "specifications",
+          "question": "How much oil do I need for an oil change on the RSC-15, and what grade is it?",
+          "answer": "The provided context does not include specific information about the oil quantity required for an oil change on the RSC-15, nor does it specify the oil grade to be used.\n\nSummary based on available information:\n1. The system involves oil level, oil filter (spin-on type), and oil change procedures as part of the oil system and oil circulation system ([Source 1], [Source 3], [Source 4], [Source 5]).\n2. Oil contamination or degradation is a medium severity mechanical issue that requires oil change ([Source 2]).\n3. No part numbers or detailed procedures related to oil quantity or oil grade are provided in the context.\n\nRecommendation:\n- Refer to the official RSC-15 service manual or manufacturer\u2019s documentation for exact oil capacity and recommended oil grade.\n- Use the spin-on type oil filter as indicated ([Source 3]).\n- Follow standard safety precautions when performing oil changes, such as ensuring the engine is off and cool, properly disposing of used oil, and avoiding skin contact.\n\nIf you have access to more detailed sections of the manual or specific part numbers, please provide them for a more precise answer.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.2,
+            "answer_relevance": 0.6,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-03",
+          "category": "maintenance",
+          "question": "When I fit a new separator element in the RSC-15, where should the scavenge tube end sit and how tight do the cover bolts go?",
+          "answer": "1. Direct answer to the question:\n- When fitting a new separator element (part number EC-15-130) in the RSC-15, the scavenge tube should be positioned so that its end sits 5 mm above the bottom of the separator element to prevent oil return blockage.\n- The separator tank cover is secured by 8 bolts. While the exact torque specification for these bolts is not provided in the context, it is important to tighten them evenly and securely to ensure a proper seal and prevent leaks.\n\n2. Relevant part numbers:\n- Separator element: EC-15-130 [Source 3]\n- Scavenge tube: no part number provided, but described as positioned 5 mm above separator bottom [Source 1]\n- Separator tank cover bolts: 8 off, no part number provided [Source 2]\n\n3. Step-by-step procedure (based on typical best practices and the provided context):\na. Remove the separator tank cover by loosening and removing the 8 separator tank cover bolts [Source 2].\nb. Take out the old separator element (EC-15-130) [Source 3].\nc. Position the new separator element in place.\nd. Ensure the scavenge tube end is positioned 5 mm above the bottom of the separator element to prevent oil return blockage [Source 1].\ne. Replace the separator tank cover and insert the 8 bolts.\nf. Tighten the bolts evenly in a criss-cross pattern to ensure even sealing pressure. (Note: Torque values are not provided; refer to the full service manual for torque specs or tighten to manufacturer recommended torque.)\n\n4. Safety warnings:\n- Always ensure the compressor is fully isolated from power and pressure sources before disassembly.\n- Use appropriate personal protective equipment (PPE) such as gloves and eye protection.\n- Avoid over-tightening bolts to prevent damage to the separator tank cover or stripping threads.\n\n5. Source citations:\n- Scavenge tube positioning: [Source 1]\n- Separator element part number: [Source 3]\n- Separator tank cover bolts: [Source 2]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.7,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.9,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-04",
+          "category": "troubleshooting",
+          "question": "The RSC-15 shut down and the display shows E06. What does that mean and what should I check?",
+          "answer": "The provided context does not include specific information about the error code \"E06\" on the RSC-15 or its meaning. There is no direct reference to error codes or troubleshooting steps related to \"E06\" in the supplied sources.\n\nHowever, based on the general troubleshooting information available:\n\n1. The motor stopping after running unloaded for 5 minutes and displaying \"AUTO STANDBY\" is noted as a low severity symptom ([Source 1]). This suggests the system has protective or standby features that might be related but does not specifically explain \"E06.\"\n\n2. There is a high severity symptom described as \"Hums and does not turn\" ([Source 4]), which may indicate motor or electrical issues, but again no direct link to \"E06.\"\n\n3. The motor and air end mounting bolts ([Source 3]) and the control station ([Source 2]) are mentioned but without error code context.\n\n4. Lifting and handling procedures for the motor are referenced ([Source 5]) but do not relate to error codes.\n\n**Summary:**  \n- The meaning of error code \"E06\" and the corresponding checks are not detailed in the provided context.  \n- To diagnose \"E06,\" consult the full RSC-15 service manual or error code list specific to your model.  \n- Typical checks for motor-related errors include verifying motor connections, checking for mechanical obstructions, inspecting mounting bolts ([Source 3]), and ensuring proper control station operation ([Source 2]).  \n- Always follow safety procedures when handling or inspecting the motor ([Source 5]).\n\nIf you can provide additional manual sections or error code documentation, I can assist further.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.0,
+            "answer_relevance": 0.8,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-05",
+          "category": "operation",
+          "question": "What load and unload pressures does the RSC-15 ship with, and at what pressure does it trip on high pressure?",
+          "answer": "The provided context does not contain specific numerical values or detailed information regarding the load and unload pressure settings for the RSC-15 compressor, nor does it specify the high-pressure trip setting.\n\nSummary based on the context:\n\n1. The system managing load and unload pressure settings is referred to as the \"pressure control system\" [Source 1].\n2. Load and unload pressure settings are discussed in a section titled \"Load and unload pressure settings\" found on page 4-4 [Source 3], but no specific pressure values are provided in the excerpts.\n3. The compressor intake and unloading are controlled by the \"inlet valve and unload solenoid\" [Source 5].\n4. There is no direct mention of the exact load/unload pressures or the high-pressure trip point in the provided context.\n\nBecause the exact pressure values and trip settings are not included, I recommend consulting the full service manual section \"Load and unload pressure settings\" on page 4-4 [Source 3] for detailed specifications and adjustment procedures.\n\nIf you require the exact pressures and trip points, please provide the relevant section or additional documentation.\n\n---\n\n**Summary:**\n\n- **Load and unload pressures for RSC-15:** Not specified in the provided context.\n- **High-pressure trip setting:** Not specified in the provided context.\n- **Relevant parts:** Pressure control system (no part number) [Source 1], inlet valve and unload solenoid (no part number) [Source 5].\n- **Recommended action:** Refer to the full \"Load and unload pressure settings\" section on page 4-4 for detailed information [Source 3].\n\nNo safety warnings or step-by-step procedures are included in the provided context.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.8,
+            "answer_relevance": 0.9,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-01",
+          "category": "safety",
+          "question": "The EM-30 runs from a variable speed drive. After isolating, how long do I wait before opening the terminal box, and which terminals do I prove dead?",
+          "answer": "1. Direct answer to the question:\nAfter isolating the EM-30 variable speed drive (VSD), you must wait for the residual voltage in the DC link capacitors to discharge before opening the terminal box. The exact wait time is not specified in the provided context, but it is critical to ensure the capacitors are fully discharged to avoid electrical shock. You must prove dead the supply terminals inside the motor supply terminal box before proceeding.\n\n2. Relevant part numbers:\n- Variable speed drive (no specific part number given) [Source 3, Source 4]\n- Electrical terminal box for motor supply connections (no specific part number given) [Source 2]\n\n3. Step-by-step procedure:\na. Isolate the variable speed drive power supply according to your site lockout/tagout procedures.\nb. Wait for the residual voltage in the DC link capacitors of the variable speed drive to discharge. (The residual voltage is a high severity electrical hazard [Source 5].)\nc. Before opening the terminal box, use a suitable voltage tester to prove dead at the motor supply terminals inside the terminal box associated with the motor [Source 2].\nd. Only after confirming zero voltage at the terminals, open the terminal box to perform any further work.\n\n4. Safety warnings:\n- The DC link capacitors inside the variable speed drive retain voltage after isolation and pose a high electrical hazard [Source 5].\n- Do not open the terminal box until you have confirmed the capacitors are discharged and the terminals are dead.\n- Use appropriate personal protective equipment (PPE) and follow electrical safety protocols.\n\n5. Source citations:\n- Variable speed drive description and DC link capacitors: [Source 3], [Source 4]\n- Residual voltage hazard in DC link capacitors: [Source 5]\n- Motor supply terminal box: [Source 2]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 0.9,
+            "faithfulness": 1.0,
+            "correctness": 0.8,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-02",
+          "category": "specifications",
+          "question": "What full load current and speed should the EM-30 nameplate show?",
+          "answer": "The provided context does not include specific information about the full load current or speed values for the ExampleCo EM-30 motor nameplate.\n\n1. **Direct answer:**  \nThere is no data on the full load current or speed for the EM-30 motor in the provided sources.\n\n2. **Relevant part numbers:**  \n- Motor part number: EM-30 [Source 1], [Source 2]\n\n3. **Step-by-step procedures:**  \nNot applicable, as no procedure for determining or verifying full load current or speed is provided.\n\n4. **Safety warnings:**  \n- The motor frame can reach 80 \u00b0C at full load; do not touch it for 30 minutes after stopping to avoid thermal injury. Use heat resistant gloves if handling is necessary [Source 3].\n\n5. **Source citations:**  \n- Motor description and part number: [Source 1], [Source 2]  \n- Thermal warning: [Source 3]  \n- Load torque warnings (mechanical limits): [Source 4], [Source 5]\n\n**Summary:**  \nTo find the full load current and speed for the EM-30 motor, consult the motor's nameplate directly or the manufacturer's detailed specification sheet, as this information is not contained in the provided context.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.1,
+            "answer_relevance": 0.9,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-03",
+          "category": "maintenance",
+          "question": "How much grease goes into each EM-30 bearing, and how often?",
+          "answer": "The provided context does not specify the exact amount of grease to be applied to each EM-30 motor bearing, nor the recommended regreasing interval.\n\nHowever, based on the available information:\n\n1. The EM-30 motor uses regreasable bearings, specifically the drive end bearing kit EC-30-201 with part number 6312 C3 [Source 5].\n\n2. The grease to be used is identified simply as \"bearing grease\" but no specific part number or quantity is given [Source 3, Source 4].\n\nBecause no explicit quantity or frequency is provided in the context, the general recommended practice for regreasing bearings like the 6312 C3 is:\n\n- Apply enough grease to fill approximately 1/3 to 1/2 of the bearing cavity volume.\n\n- Regrease intervals typically depend on operating conditions but often range from every 3 to 6 months under normal industrial use.\n\n**Recommended procedure (general industry practice):**\n\n1. Clean the bearing area to remove old grease and contaminants.\n\n2. Use a grease gun with the recommended bearing grease.\n\n3. Pump grease until fresh grease appears at the bearing seals, indicating the bearing cavity is adequately filled.\n\n4. Wipe off excess grease to prevent contamination.\n\n**Safety warnings:**\n\n- Ensure the motor is powered off and locked out before performing maintenance.\n\n- Use appropriate personal protective equipment (PPE) such as gloves and safety glasses.\n\n- Dispose of used grease and cleaning materials according to environmental regulations.\n\n**Summary:**\n\n- Bearing: Regreasable bearing kit EC-30-201, part number 6312 C3 [Source 5]\n\n- Grease: Bearing grease (unspecified) [Source 3, 4]\n\n- Amount and frequency: Not specified in the provided context; follow general bearing maintenance guidelines or consult the full EM-30 motor manual.\n\nIf precise grease quantity and regreasing intervals are critical, please refer to the full EM-30 motor service manual or contact the manufacturer for detailed specifications.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.3,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-04",
+          "category": "troubleshooting",
+          "question": "At what vibration level should I raise an alarm on the EM-30, and when do I shut it down?",
+          "answer": "The provided context does not include any specific information about vibration levels, alarm thresholds, or shutdown criteria for the ExampleCo EM-30 motor. There are no details on acceptable vibration limits, alarm setpoints, or procedures related to vibration monitoring or response.\n\nTo summarize:\n\n1. **Direct answer:**  \n   The service manuals do not specify at what vibration level you should raise an alarm or shut down the EM-30 motor.\n\n2. **Relevant part numbers:**  \n   - Motor: ExampleCo EM-30, part number EM-30 [Source 1, Source 2]  \n   - Anti-vibration pads under the compressor cabinet (no part number provided) [Source 5]\n\n3. **Step-by-step procedures:**  \n   None provided regarding vibration alarm or shutdown.\n\n4. **Safety warnings:**  \n   None related to vibration levels are provided.\n\n5. **Source citations:**  \n   - Motor details: [Source 1], [Source 2]  \n   - Anti-vibration pads: [Source 5]  \n   - No vibration alarm/shutdown info in any source.\n\n**Recommendation:**  \nConsult the full EM-30 motor technical manual or vibration monitoring system documentation for specific vibration alarm and shutdown thresholds. Additionally, consider industry standards for vibration monitoring (e.g., ISO 10816) for guidance on acceptable vibration levels and actions.",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-05",
+          "category": "operation",
+          "question": "How many times an hour can I start the EM-30, and how many back to back starts are allowed?",
+          "answer": "1. Direct answer to the question:  \nYou can start the ExampleCo EM-30 motor (part number EM-30) no more than 6 times per hour. Additionally, you should limit to no more than 2 consecutive cold starts or 1 hot start. After consecutive starts, you must wait 30 minutes before starting again.\n\n2. Relevant part numbers:  \n- Motor: EM-30 [Source 5]\n\n3. Step-by-step procedure:  \n- Start the EM-30 motor, ensuring you do not exceed 6 starts within any one-hour period.  \n- Avoid more than 2 consecutive cold starts or more than 1 hot start in a row.  \n- After performing consecutive starts, allow the motor to rest for at least 30 minutes before attempting another start.\n\n4. Safety warnings:  \n- Excessive starting beyond these limits may cause damage to the motor or reduce its operational life.  \n- Always follow the specified start limits to prevent overheating or mechanical stress.\n\n5. Source citations:  \n- Starting limits and waiting times: [Source 1], [Source 2], [Source 3]  \n- Motor part number and description: [Source 5]",
+          "retrieved": [
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            },
+            {
+              "model": null,
+              "section": null
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 0.0,
+            "reciprocal_rank": 0.0,
+            "model_precision": 0.0
+          },
+          "errors": []
+        }
+      ]
+    },
+    "fused": {
+      "retrieval_mode": "fused",
+      "usage": {
+        "chat_calls": 75,
+        "prompt_tokens": 58504,
+        "completion_tokens": 13755
+      },
+      "judge": "openai:gpt-4.1-mini",
+      "generator": "gpt-4.1-mini",
+      "total_questions": 15,
+      "failed_judgments": 0,
+      "graph_errors": [],
+      "aggregate": {
+        "context_relevance": 0.9,
+        "answer_relevance": 1.0,
+        "faithfulness": 0.8667,
+        "correctness": 0.96,
+        "section_hit": 1.0,
+        "reciprocal_rank": 0.9222,
+        "model_precision": 0.7067
+      },
+      "by_category": {
+        "maintenance": {
+          "context_relevance": 0.9,
+          "answer_relevance": 1.0,
+          "faithfulness": 0.6667,
+          "correctness": 0.9333,
+          "section_hit": 1.0,
+          "reciprocal_rank": 1.0,
+          "model_precision": 0.6667
+        },
+        "operation": {
+          "context_relevance": 0.9667,
+          "answer_relevance": 1.0,
+          "faithfulness": 1.0,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 0.7778,
+          "model_precision": 0.6667
+        },
+        "safety": {
+          "context_relevance": 0.8667,
+          "answer_relevance": 1.0,
+          "faithfulness": 1.0,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 1.0,
+          "model_precision": 0.6667
+        },
+        "specifications": {
+          "context_relevance": 1.0,
+          "answer_relevance": 1.0,
+          "faithfulness": 1.0,
+          "correctness": 0.8667,
+          "section_hit": 1.0,
+          "reciprocal_rank": 0.8333,
+          "model_precision": 0.8667
+        },
+        "troubleshooting": {
+          "context_relevance": 0.7667,
+          "answer_relevance": 1.0,
+          "faithfulness": 0.6667,
+          "correctness": 1.0,
+          "section_hit": 1.0,
+          "reciprocal_rank": 1.0,
+          "model_precision": 0.6667
+        }
+      },
+      "per_question": [
+        {
+          "id": "cp200-01",
+          "category": "safety",
+          "question": "Can I pick up the whole CP-200 pump and motor by the motor eyebolt, and what capacity hoist do I need?",
+          "answer": "1. Direct answer to the question:\nNo, you must not lift the entire CP-200 pump and motor unit by the motor eyebolt alone. The motor eyebolt is rated only for lifting the motor by itself and is not designed to support the full weight of the combined unit. Lifting the complete unit by the motor eyebolt will cause the unit to tilt toward the pump end and overload the eyebolt, which is unsafe.\n\nThe complete unit weighs 98 kg (motor 62 kg + pump 36 kg). You need to use a hoist and slings rated for at least 150 kg to safely lift the entire unit.\n\n2. Relevant part numbers:\n- Vent plug: EC-200-115 (not directly related to lifting but useful for other procedures)\n- Impeller nut: EC-200-131 (mentioned for replacement when servicing)\n\n3. Step-by-step procedure to lift the complete CP-200 pump unit safely:\n- Use a hoist and slings rated for at least 150 kg capacity.\n- Place one sling around the motor frame next to the adapter.\n- Place the second sling around the pump casing next to the discharge flange.\n- Lift the unit until it hangs level.\n- Lower the unit carefully onto the foundation bolts.\n\n4. Safety warnings:\n- Do not lift the complete unit by the motor eyebolt alone, as it will overload the eyebolt and cause unsafe conditions.\n- Ensure the hoist and slings are rated for at least 150 kg to handle the combined weight safely.\n- The motor eyebolt is only rated for lifting the motor alone, not with pump or other attachments.\n\n5. Source citations:\n- Lifting instructions and warnings: [Source 1]\n- Motor eyebolt rating and lifting warnings: [Source 1], [Source 2]\n\n---\n\nSummary:  \nDo not lift the whole CP-200 pump and motor by the motor eyebolt. Use slings around both the motor frame and pump casing, and a hoist rated for at least 150 kg to lift the complete 98 kg unit safely.",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Lifting the pump unit"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Fastener torque values"
+            },
+            {
+              "model": "CP-200",
+              "section": "CP-200 End-Suction Centrifugal Pump Service Manual"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-02",
+          "category": "specifications",
+          "question": "What do I torque the impeller nut and the casing bolts to on the CP-200?",
+          "answer": "1. **Torque values for CP-200:**\n\n- Impeller nut: 55 N\u00b7m  \n- Casing bolts (8 off, M12): Tighten in a cross pattern in two stages \u2014 first to 35 N\u00b7m, then to 70 N\u00b7m\n\n2. **Relevant part numbers:**\n\n- Impeller nut: EC-200-131 (has a nylon locking insert and must be replaced each time it is removed)  \n- Casing gasket: EC-200-118 (to be replaced when refitting the casing)  \n\n3. **Step-by-step procedure for mechanical seal replacement and torque application (summarized):**\n\n- Isolate and drain the pump following lockout and tagout procedures.  \n- Remove the 8 M12 casing bolts.  \n- Pull the motor, adapter, and impeller out as one assembly.  \n- Hold the impeller with a strap wrench and remove the impeller nut (right-hand thread).  \n- Replace the mechanical seal components as per instructions.  \n- Refit the key and impeller.  \n- Fit the new impeller nut and torque it to 55 N\u00b7m.  \n- Fit the new casing gasket and refit the assembly.  \n- Tighten the casing bolts in a cross pattern in two stages: first to 35 N\u00b7m, then to 70 N\u00b7m.  \n- Turn the fan by hand to confirm free rotation.  \n- Prime the pump before starting.  \n\n4. **Safety warnings:**\n\n- The impeller nut has a nylon locking insert and must be replaced each time it is removed to ensure secure fastening [Source 1].  \n- The pump is not self-priming; running it dry will destroy the seal faces within 30 seconds [Source 4]. Always prime the pump before starting.  \n- Follow lockout and tagout procedures before disassembly to ensure safety [Source 5].  \n\n5. **Source citations:**\n\n- Torque values and tightening sequence: [Source 1]  \n- Mechanical seal replacement and part numbers: [Source 5]  \n- Priming and first start warnings: [Source 4]  \n\n---\n\n**Summary:**  \nTorque the CP-200 impeller nut (EC-200-131) to 55 N\u00b7m and tighten the 8 casing bolts (M12) in a cross pattern first to 35 N\u00b7m, then to 70 N\u00b7m. Replace the impeller nut each time it is removed and always prime the pump before starting to avoid seal damage.",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Fastener torque values"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Tightening torques"
+            },
+            {
+              "model": "EM-30",
+              "section": "Terminal and fastener torques"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Mechanical seal replacement"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.9,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-03",
+          "category": "maintenance",
+          "question": "How often does the drive end motor bearing on the CP-200 need grease, and how much goes in?",
+          "answer": "1. **Lubrication interval and quantity:**\n\n- The drive end motor bearing on the CP-200 must be regreased every 4,000 operating hours.\n- If the liquid temperature exceeds 70 \u00b0C or the ambient temperature exceeds 35 \u00b0C, reduce the interval to every 2,000 operating hours.\n- The grease quantity to inject is 10 g of lithium complex NLGI 2 grease.\n\n2. **Relevant part numbers:**\n\n- The drive end bearing is a 6308 C3 type bearing (regreasable) [Source 1].\n- Grease type: Lithium complex NLGI 2 grease (mineral base oil) [Source 1, 4].\n\n3. **Step-by-step regreasing procedure:**\n\n1. Clean the grease nipple on the drive end bearing cover.\n2. Remove the grease outlet plug at the bottom of the bearing cover.\n3. With the pump running, inject 10 g of grease. This corresponds to 8 strokes of a grease gun that delivers 1.25 g per stroke.\n4. Run the pump for 1 hour with the outlet plug removed.\n5. After 1 hour, refit the grease outlet plug.\n\n4. **Safety warnings and notes:**\n\n- Do not mix greases with different thickener types.\n- The bearing housing temperature can rise by 10 to 15 \u00b0C for a few hours after regreasing and must not exceed 80 \u00b0C.\n- Monitor bearing temperature after regreasing to ensure it stays within limits [Source 1].\n\n5. **Source citations:**\n\n- Bearing lubrication interval and procedure: [Source 1]\n- Bearing type and grease specification: [Source 1], [Source 4]\n- Maintenance schedule confirming interval: [Source 5]\n\n---\n\n**Summary:**  \nRegrease the CP-200 drive end motor bearing (6308 C3) every 4,000 operating hours (or 2,000 hours if high temperature conditions apply) with 10 g of lithium complex NLGI 2 grease. Follow the cleaning, injection, and running procedure as detailed above, ensuring the bearing housing temperature does not exceed 80 \u00b0C after regreasing.",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Bearing lubrication interval"
+            },
+            {
+              "model": "EM-30",
+              "section": "Bearing regreasing procedure"
+            },
+            {
+              "model": "EM-30",
+              "section": "Bearing replacement"
+            },
+            {
+              "model": "EM-30",
+              "section": "Mechanical and bearing data"
+            },
+            {
+              "model": "CP-200",
+              "section": "Maintenance schedule"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 0.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.4
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-04",
+          "category": "troubleshooting",
+          "question": "After the motor on the CP-200 was reconnected, the pump only makes about half its normal pressure. What is the likely cause and the fix?",
+          "answer": "1. Direct answer:  \nThe likely cause is that the motor rotation is reversed after the electrical work. This causes the pump to deliver about 50% of its rated head.\n\n2. Relevant part numbers:  \n- No specific part number applies to this issue since it is an electrical wiring correction.\n\n3. Step-by-step procedure to fix:  \n- Verify the direction of the fan rotation by observing the fan from the fan end; it should turn clockwise. If it turns counterclockwise, the rotation is reversed.  \n- Isolate power to the motor before any electrical work.  \n- Swap any two of the three phase conductors at the motor terminals to correct the rotation.  \n- Re-energize the motor and confirm the fan now rotates clockwise and the pump delivers full rated head pressure.\n\n4. Safety warnings:  \n- Always isolate electrical power before working on motor terminals to avoid electric shock or injury.  \n- Confirm correct motor rotation before running the pump under load to prevent damage.\n\n5. Source citations:  \n- This troubleshooting and corrective action is detailed in the low discharge pressure table under \"Reverse rotation after electrical work\" in [Source 1].",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Low discharge pressure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Motor protection relay trips"
+            },
+            {
+              "model": "CP-200",
+              "section": "Excessive noise and vibration"
+            },
+            {
+              "model": "CP-200",
+              "section": "CP-200 End-Suction Centrifugal Pump Service Manual"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "cp200-05",
+          "category": "operation",
+          "question": "What is the lowest flow the CP-200 can run at continuously, and how long can it run against a shut discharge valve?",
+          "answer": "1. Direct answer to the question:\n- The lowest flow the CP-200 pump can run at continuously is 10 m\u00b3/h.\n- The maximum time the CP-200 can run against a closed discharge valve is 2 minutes.\n\n2. Relevant part numbers:\n- No specific part numbers are directly related to flow limits or running against a closed discharge valve.\n\n3. Step-by-step procedures:\n- To avoid running below minimum flow and causing overheating or steam flashing in the casing, always maintain flow above 10 m\u00b3/h by adjusting the discharge valve.\n- To avoid damage when the discharge valve is closed, do not exceed 2 minutes of operation against a closed discharge valve.\n- Use the discharge valve to regulate flow; do not throttle the suction valve as this can cause cavitation.\n\n4. Safety warnings:\n- Operating below the minimum continuous flow causes the water in the casing to heat and potentially flash to steam, which can damage the pump.\n- Running the pump against a closed discharge valve for longer than 2 minutes can cause damage.\n- Do not throttle the suction valve to control flow as this leads to cavitation and potential pump damage.\n\n5. Source citations:\n- Operating limits table and related warnings: [Source 1]  \n- \"Below the minimum flow the water in the casing heats and can flash to steam. Above the maximum flow the pump cavitates. Use the discharge valve to correct the flow. Do not throttle the suction valve.\" [Source 1]  \n- \"Maximum time against a closed discharge valve: 2 minutes\" [Source 1]\n\n---\n\nSummary:  \nThe CP-200 pump must be run continuously at flows no less than 10 m\u00b3/h and must not operate against a closed discharge valve for more than 2 minutes to avoid damage. Flow adjustment should be made via the discharge valve only.",
+          "retrieved": [
+            {
+              "model": "CP-200",
+              "section": "Operating limits"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            },
+            {
+              "model": "CP-200",
+              "section": "Low discharge pressure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Shutdown and frost protection"
+            },
+            {
+              "model": "CP-200",
+              "section": "CP-200 End-Suction Centrifugal Pump Service Manual"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-01",
+          "category": "safety",
+          "question": "I stopped and locked out the RSC-15, but the tank gauge still shows pressure after a couple of minutes. What do I do before opening the oil filler?",
+          "answer": "1. Direct answer to the question:  \nIf the separator tank gauge still shows pressure 2 minutes after stopping and locking out the RSC-15 compressor, you must open the manual vent valve (EC-15-318) slowly and keep it open until the gauge reads 0 bar before opening the oil filler plug.\n\n2. Relevant part number:  \n- Manual vent valve: EC-15-318\n\n3. Step-by-step procedure:  \n- After stopping the compressor and performing the initial isolation and depressurization steps (press STOP on the controller, open main isolator with padlock and tag, close outlet ball valve and tag it), check the separator tank gauge.  \n- Wait for the blowdown valve to vent the tank automatically. If after 2 minutes the gauge still shows pressure, proceed as follows:  \n  a. Open the manual vent valve (EC-15-318) slowly.  \n  b. Keep the vent valve open until the gauge reads 0 bar, indicating the tank is fully depressurized.  \n- Wait at least 5 minutes after the stop before opening the oil filler plug to allow residual pressure to dissipate safely.  \n- Verify absence of voltage at motor terminals and isolate the cabinet heater supply as well before proceeding.  \n- Allow 30 minutes for the air end, discharge pipe, and tank to cool below 50 \u00b0C before touching any parts.\n\n4. Safety warnings:  \n- Electrical isolation alone does not make the compressor safe to open. Complete every step before opening any part of the air or oil circuit.  \n- Do not open the oil filler plug until the tank pressure reads 0 bar and you have waited at least 5 minutes after stop.  \n- The separator tank may hold compressed air and oil at up to 95 \u00b0C; allow sufficient cooling time to avoid burns.  \n- Do not direct compressed air at skin or use it to clean clothing.\n\n5. Source citations:  \n- Isolation and depressurization procedure for RSC-15, including manual vent valve EC-15-318 and oil filler plug precautions [Source 1].",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Isolation and depressurization procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Lockout and tagout procedure"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Safety valve function"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Oil and oil filter change"
+            },
+            {
+              "model": "EM-30",
+              "section": "Electrical isolation and lockout"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-02",
+          "category": "specifications",
+          "question": "How much oil do I need for an oil change on the RSC-15, and what grade is it?",
+          "answer": "1. **Oil quantity and grade for oil change on RSC-15:**\n\n- You need **8.0 liters** of oil for an oil change.\n- The required oil grade is **ISO VG 46 synthetic compressor oil**.\n\n2. **Relevant part numbers:**\n\n- Oil filter part number: **EC-15-120** (to be replaced during oil change).\n\n3. **Step-by-step oil change procedure:**\n\n1. Run the compressor loaded until the oil temperature reaches at least 60 \u00b0C to ensure full drainage.\n2. Stop, isolate, and depressurize the compressor following the isolation and depressurization procedure.\n3. Loosen the oil filler plug one turn and wait for residual pressure to escape, then remove it.\n4. Open the tank drain valve and cooler drain plug, drain the oil into a container of at least 12 L capacity.\n5. Remove the oil filter (EC-15-120) using a filter wrench.\n6. Oil the gasket of the new filter, screw it on until the gasket touches the seat, then tighten a further 3/4 turn by hand.\n7. Close the tank drain valve and refit the cooler drain plug with a new sealing ring tightened to 30 N\u00b7m.\n8. Fill 8.0 L of ISO VG 46 synthetic compressor oil and refit the filler plug.\n9. Run the compressor loaded for 5 minutes, then stop and wait 5 minutes.\n10. Top up oil level to the MAX mark on the sight glass (do not overfill).\n11. Reset the service counter in menu S01.\n\n4. **Safety warnings and notes:**\n\n- Always depressurize the compressor before opening any oil system components to avoid injury.\n- Use a container of at least 12 L capacity to safely collect drained oil.\n- Fit a new sealing ring each time the oil drain plug or cooler drain plug is removed.\n- Do not mix synthetic oil with mineral oil as it causes foaming and increased oil carryover.\n- Check oil level only when the compressor is stopped and depressurized for at least 5 minutes.\n- Do not fill oil above the MAX mark on the sight glass.\n\n5. **Source citations:**\n\n- Oil quantity and grade: [Source 2]\n- Oil change procedure and filter part number: [Source 1]\n- Tightening torque for cooler drain plug and oil filter: [Source 5]\n- Safety and oil level notes: [Source 2], [Source 1]\n\n---\n\n**Summary:** For an oil change on the RSC-15 compressor, drain the old oil and replace the oil filter (EC-15-120), then refill with 8.0 liters of ISO VG 46 synthetic compressor oil, following the detailed procedure and safety precautions above.",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Oil and oil filter change"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Lubricant and fill quantities"
+            },
+            {
+              "model": "RSC-15",
+              "section": "RSC-15 Oil-Flooded Rotary Screw Air Compressor Service Manual"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Compressor rating data"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Tightening torques"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.7,
+            "section_hit": 1.0,
+            "reciprocal_rank": 0.5,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-03",
+          "category": "maintenance",
+          "question": "When I fit a new separator element in the RSC-15, where should the scavenge tube end sit and how tight do the cover bolts go?",
+          "answer": "1. **Direct answer:**\n\n- The scavenge tube end should be set so that it is 5 mm above the bottom of the separator element. A tube that touches the bottom blocks the oil return.\n- The separator tank cover bolts (8 off, size M12) should be tightened to 70 N\u00b7m in a cross pattern.\n\n2. **Relevant part numbers:**\n\n- Separator element: EC-15-130\n- Separator tank cover bolts: M12 (8 bolts)\n\n3. **Step-by-step procedure for fitting a new separator element (summarized):**\n\n1. Stop, isolate, and depressurize the compressor. Confirm the tank gauge reads 0 bar.  \n2. Disconnect the scavenge line and outlet pipe from the tank cover.  \n3. Remove the 8 M12 cover bolts and lift the cover off.  \n4. Lift out the old separator element (EC-15-130) and remove both gaskets. Clean the sealing faces.  \n5. Fit the new separator element with new gaskets. Do not remove the metal staples in the gaskets as they earth the element to the tank.  \n6. Refit the cover and tighten the 8 M12 bolts in a cross pattern to 70 N\u00b7m.  \n7. Set the scavenge tube so its end is 5 mm above the bottom of the element to ensure proper oil return.  \n8. Reconnect the pipes and check the cover joint for leaks at 8 bar.\n\n4. **Safety warnings:**\n\n- Always stop, isolate, and depressurize the compressor before opening the separator tank. Confirm the tank gauge reads 0 bar before proceeding.  \n- Follow the isolation and depressurization procedure carefully to avoid exposure to compressed air and hot oil (up to 95 \u00b0C) [Source 3].  \n- Do not remove the metal staples in the gaskets as they provide earthing.  \n- After refitting, check the cover joint for leaks at 8 bar to ensure a safe seal.\n\n5. **Source citations:**\n\n- Separator element replacement procedure and scavenge tube positioning: [Source 1]  \n- Tightening torque for separator tank cover bolts: [Source 2]  \n- Isolation and depressurization safety procedure: [Source 3]",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Separator element replacement"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Tightening torques"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Isolation and depressurization procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Mechanical seal replacement"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Safety valve function"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.8,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-04",
+          "category": "troubleshooting",
+          "question": "The RSC-15 shut down and the display shows E06. What does that mean and what should I check?",
+          "answer": "1. **Direct answer:**  \nThe E06 shutdown code on the RSC-15 indicates that the pressure transducer signal is outside the expected 4 to 20 mA range. This means the controller is not receiving a valid pressure signal, causing the compressor to shut down for safety.\n\n2. **What to check:**  \n- Inspect the pressure transducer cable and connector for damage, loose connections, or corrosion.  \n- If the wiring and connector are intact but the signal remains out of range, the pressure transducer itself may be faulty.\n\n3. **Corrective action and part numbers:**  \n- Repair or replace any damaged cables or connectors.  \n- If the problem persists, replace the pressure transducer with part number **EC-15-410**.\n\n4. **Step-by-step procedure:**  \na. Power down the compressor and ensure it is safe to work on electrical components.  \nb. Locate the pressure transducer and trace its wiring to check for visible damage or loose connections.  \nc. Use a multimeter or appropriate diagnostic tool to measure the signal current from the transducer; it should be between 4 and 20 mA.  \nd. If the signal is outside this range and wiring is good, replace the transducer with EC-15-410.  \ne. After repairs, power up the compressor and verify the alarm clears. Press RESET on the controller to resume operation.\n\n5. **Safety warnings:**  \n- Always ensure the compressor is powered down and locked out before inspecting or repairing electrical components to prevent electric shock or injury.  \n- Follow all standard electrical safety procedures and wear appropriate personal protective equipment.\n\n**References:**  \n- Controller alarm codes, E06 description and corrective action [Source 1]  \n- Part number for pressure transducer EC-15-410 [Source 1]",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Controller alarm codes"
+            },
+            {
+              "model": "EM-30",
+              "section": "Overheating and thermistor trips"
+            },
+            {
+              "model": "RSC-15",
+              "section": "High discharge temperature"
+            },
+            {
+              "model": "RSC-15",
+              "section": "RSC-15 Oil-Flooded Rotary Screw Air Compressor Service Manual"
+            },
+            {
+              "model": "CP-200",
+              "section": "Motor protection relay trips"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.3,
+            "answer_relevance": 1.0,
+            "faithfulness": 0.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "rsc15-05",
+          "category": "operation",
+          "question": "What load and unload pressures does the RSC-15 ship with, and at what pressure does it trip on high pressure?",
+          "answer": "1. **Load and Unload Pressures at Shipment:**\n\n- The RSC-15 ships with a **load pressure** set at **7.0 bar** (factory value).\n- The **unload pressure** is set at **8.0 bar** (factory value).\n\nThese values are adjustable within the ranges:\n- Load pressure: 5.0 to 7.5 bar\n- Unload pressure: 5.5 to 8.0 bar\n\nThe controller will reject any unload pressure setting above 8.0 bar.\n\n2. **High Pressure Trip Setting:**\n\n- The high pressure shutdown (error code E07) trips at a fixed pressure of **8.6 bar**.\n\n3. **Relevant Part Numbers:**\n\n- No specific part number is associated with the load/unload pressure settings or the high pressure shutdown in the provided context.\n- The safety valve related to pressure relief is part number **EC-15-305**, but it opens at 9.5 bar, which is above the high pressure shutdown trip point.\n\n4. **Procedures to Adjust Load and Unload Pressure:**\n\n- Enter the level 1 password on the controller.\n- Edit parameter **P02** to change the load pressure.\n- Edit parameter **P03** to change the unload pressure.\n- Note: The controller will reject unload pressures above 8.0 bar.\n\n5. **Safety Warnings:**\n\n- The minimum pressure valve maintains tank pressure at 4.5 bar or above to ensure oil circulation and separator element function.\n- The high pressure shutdown at 8.6 bar is fixed and should not be adjusted.\n- The safety valve (EC-15-305) opens at 9.5 bar and must be tested monthly; do not repair or adjust this valve.\n\n---\n\n**Summary:**\n\n| Parameter                      | Factory Value | Adjustable Range  |\n|-------------------------------|---------------|-------------------|\n| Load Pressure (P02)            | 7.0 bar       | 5.0 to 7.5 bar    |\n| Unload Pressure (P03)          | 8.0 bar       | 5.5 to 8.0 bar    |\n| High Pressure Shutdown (E07)  | 8.6 bar       | Fixed             |\n\n**References:**\n\n- Load and unload pressure settings and adjustment procedure: [Source 1]\n- High pressure shutdown value: [Source 1]\n- Safety valve details: [Source 2]",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Load and unload pressure settings"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Safety valve function"
+            },
+            {
+              "model": "RSC-15",
+              "section": "RSC-15 Oil-Flooded Rotary Screw Air Compressor Service Manual"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Controller start and stop sequence"
+            },
+            {
+              "model": "CP-200",
+              "section": "Motor protection relay trips"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-01",
+          "category": "safety",
+          "question": "The EM-30 runs from a variable speed drive. After isolating, how long do I wait before opening the terminal box, and which terminals do I prove dead?",
+          "answer": "1. **Direct answer:**\n\nAfter isolating the EM-30 motor that runs from a variable speed drive, you must wait at least **10 minutes** before opening the terminal box to allow the drive DC link capacitors to discharge. You must prove that no voltage is present at the motor terminals **U1, V1, W1** and at the heater terminals **HE1 and HE2** before opening the terminal box.\n\n2. **Relevant part numbers:**\n\n- Terminal box cover gasket: **EC-30-405** (to be refitted after work)\n- Thermistor terminals: **TP1 and TP2**\n- Heater terminals: **HE1 and HE2**\n\n3. **Step-by-step procedure:**\n\n- Stop the driven machine and the motor from the normal control station.\n- Open the motor isolator and fit a personal padlock and a tag with your name, date, and reason for isolation.\n- Isolate the heater supply at its own circuit breaker and lock it.\n- If the motor is fed by a variable speed drive, **wait at least 10 minutes** after isolation to allow the DC link capacitors to discharge.\n- Use a tested voltage indicator (tested on a known live source before and after) to prove that no voltage is present at:\n  - Motor terminals: **U1, V1, W1**\n  - Heater terminals: **HE1, HE2**\n- Only after confirming zero voltage, open the terminal box.\n\n4. **Safety warnings:**\n\n- Always test your voltage indicator on a known live source before and after checking to ensure it is working correctly.\n- Keep the coupling guard and fan cover fitted whenever the motor can be energized.\n- The motor frame can reach 80 \u00b0C at full load; do not touch it for 30 minutes after stopping.\n- Do not connect any tester to thermistor terminals TP1 and TP2 as they can be damaged by voltages above 2.5 V.\n\n5. **Source citations:**\n\n- Electrical isolation and lockout procedure including waiting time and voltage checks: [Source 1]\n- Terminal box connections and terminal identification: [Source 5]\n\n---\n\n**Summary:**  \nWait 10 minutes after isolating the variable speed drive feeding the EM-30 motor before opening the terminal box. Prove absence of voltage at U1, V1, W1, and HE1, HE2 terminals using a tested voltage indicator. Follow lockout/tagout and safety procedures as detailed in [Source 1] and [Source 5].",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Electrical isolation and lockout"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Isolation and depressurization procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Lockout and tagout procedure"
+            },
+            {
+              "model": "EM-30",
+              "section": "Insulation resistance test before first start"
+            },
+            {
+              "model": "EM-30",
+              "section": "Terminal box connections"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.7,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.6
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-02",
+          "category": "specifications",
+          "question": "What full load current and speed should the EM-30 nameplate show?",
+          "answer": "1. **Direct answer:**\n\n- The EM-30 nameplate should show a **full load current of 55 A at 400 V**.\n- The rated full load speed should be **1,475 rpm**.\n\n2. **Relevant part numbers:**\n\n- Not applicable for this question as it concerns electrical rating data.\n\n3. **Step-by-step procedures:**\n\n- Not applicable for this question since it asks for nameplate data, which is fixed by design and manufacturer.\n\n4. **Safety warnings:**\n\n- When handling or lifting the motor to check or install the nameplate, follow safe lifting procedures as per [Source 2].\n- Ensure the motor is disconnected from power before any inspection.\n\n5. **Source citations:**\n\n- Full load current and speed values are from the Electrical rating plate data in [Source 1]:\n  - Rated current: 55 A at 400 V\n  - Rated speed: 1,475 rpm",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Electrical rating plate data"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            },
+            {
+              "model": "EM-30",
+              "section": "EM-30 Three-Phase TEFC Induction Motor Service Manual"
+            },
+            {
+              "model": "EM-30",
+              "section": "Starting methods and starting limits"
+            },
+            {
+              "model": "EM-30",
+              "section": "Mechanical and bearing data"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 1.0
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-03",
+          "category": "maintenance",
+          "question": "How much grease goes into each EM-30 bearing, and how often?",
+          "answer": "1. **Grease quantity and interval for EM-30 bearings:**\n\n- **Drive end bearing (6312 C3):** 20 g of lithium complex NLGI 2 grease  \n- **Non-drive end bearing (6212 C3):** 15 g of lithium complex NLGI 2 grease\n\n- **Regreasing interval:** Every 8,000 operating hours or every 2 years, whichever comes first.  \n- **Note:** This interval applies to a horizontal shaft running at 1,475 rpm and ambient temperature up to 40 \u00b0C. For vertical shafts or higher ambient temperatures, halve the interval to 4,000 hours or 1 year.\n\n2. **Relevant part numbers:**\n\n- Drive end bearing kit: **EC-30-201**  \n- Non-drive end bearing kit: **EC-30-202**\n\n3. **Step-by-step regreasing procedure:**\n\n1. Clean the grease nipples and open the grease outlet at the bottom of each end shield.  \n2. With the motor running, inject 20 g of grease at the drive end bearing and 15 g at the non-drive end bearing.  \n   - If greasing while running is not possible, inject half the quantity at standstill, run the motor for 1 hour, then inject the remaining grease.  \n3. Run the motor for 2 hours with the grease outlets open, then close them.  \n4. Monitor bearing temperature; it can rise by up to 15 \u00b0C after regreasing and must return to normal within 8 hours.\n\n4. **Safety warnings and notes:**\n\n- Use only lithium complex NLGI 2 grease with a base oil viscosity of 100 to 150 mm\u00b2/s at 40 \u00b0C.  \n- Do not exceed the recommended grease quantity to avoid bearing damage.  \n- Ensure the motor is running during grease injection if possible to distribute grease properly.  \n- After regreasing, monitor bearing temperature to ensure it stabilizes within safe limits.  \n- Follow electrical isolation and lockout procedures before any maintenance involving disassembly.\n\n5. **Source citations:**\n\n- Grease quantity, type, and interval: [Source 1]  \n- Bearing types and kits: [Source 4]  \n- Regreasing procedure and temperature notes: [Source 1]",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Bearing regreasing procedure"
+            },
+            {
+              "model": "CP-200",
+              "section": "Bearing lubrication interval"
+            },
+            {
+              "model": "EM-30",
+              "section": "Bearing replacement"
+            },
+            {
+              "model": "EM-30",
+              "section": "Mechanical and bearing data"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 0.8,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.8
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-04",
+          "category": "troubleshooting",
+          "question": "At what vibration level should I raise an alarm on the EM-30, and when do I shut it down?",
+          "answer": "1. **Direct answer:**\n\nFor the EM-30 motor, you should raise an alarm if the RMS vibration velocity on the bearing housings exceeds **4.5 mm/s** and shut down the motor if it reaches **7.1 mm/s**.\n\n2. **Relevant part numbers:**\n\n- If bearing current damage is suspected (e.g., whining noise on a motor fed by a drive), fit an insulated non-drive end bearing using kit **EC-30-215** [Source 1].\n\n3. **Step-by-step procedure for vibration monitoring and response:**\n\n- Measure RMS vibration velocity on both bearing housings (drive end and non-drive end) in the horizontal, vertical, and axial directions over the frequency range 10 to 1,000 Hz [Source 1].\n- Compare the measured RMS vibration velocity with the limits:\n  - Below 2.8 mm/s: acceptable for new or rebuilt motor.\n  - Between 2.8 mm/s and 4.5 mm/s: monitor closely.\n  - Above 4.5 mm/s: raise an alarm and investigate causes.\n  - Above 7.1 mm/s: shut down the motor immediately to prevent damage.\n- Investigate possible causes of high vibration such as misalignment, unbalance, or bearing damage, and take corrective actions as per the symptom table in [Source 1].\n- If bearing damage is confirmed (rumbling or grinding noise, rising bearing temperature), replace both bearings.\n- If bearing current damage is suspected, fit the insulated bearing kit EC-30-215.\n\n4. **Safety warnings:**\n\n- Always ensure the motor is properly isolated and locked out before performing any inspection or maintenance.\n- Follow proper lifting procedures when handling the EM-30 motor (weight 235 kg), using eyebolts and a spreader beam as described in [Source 3].\n- Do not operate the motor beyond the vibration shutdown limit to avoid catastrophic bearing failure or further damage.\n\n5. **Source citations:**\n\n- Vibration limits and corrective actions: [Source 1] EM-30, Bearing noise and vibration.\n- Bearing current damage kit: EC-30-215 from [Source 1].\n- Lifting and handling safety: [Source 3].\n\n---\n\n**Summary:**  \nRaise an alarm at RMS vibration velocity >4.5 mm/s and shut down at >7.1 mm/s on the EM-30 motor bearing housings. Investigate and correct causes promptly to avoid damage.",
+          "retrieved": [
+            {
+              "model": "EM-30",
+              "section": "Bearing noise and vibration"
+            },
+            {
+              "model": "CP-200",
+              "section": "Excessive noise and vibration"
+            },
+            {
+              "model": "EM-30",
+              "section": "Lifting and handling the motor"
+            },
+            {
+              "model": "RSC-15",
+              "section": "Controller alarm codes"
+            },
+            {
+              "model": "CP-200",
+              "section": "Operating limits"
+            }
+          ],
+          "scores": {
+            "context_relevance": 1.0,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 1.0,
+            "model_precision": 0.4
+          },
+          "errors": []
+        },
+        {
+          "id": "em30-05",
+          "category": "operation",
+          "question": "How many times an hour can I start the EM-30, and how many back to back starts are allowed?",
+          "answer": "1. Direct answer to the question:\n\n- The EM-30 motor can be started no more than 6 times per hour, and these starts should be evenly spaced.\n- No more than 2 consecutive starts are allowed from a cold motor, or 1 consecutive start from a hot operating temperature.\n- After consecutive starts, a waiting period of 30 minutes is required before the next start.\n\n2. Relevant part numbers:  \n- No specific part numbers are applicable to starting limits.\n\n3. Step-by-step procedures:  \n- When using star-delta starting, set the star-delta timer to change over at about 95% of rated speed, typically after 6 to 10 seconds, to keep the load torque during acceleration below 149 N\u00b7m.\n- Ensure starts are spaced to comply with the limit of 6 starts per hour.\n- Avoid exceeding the allowed number of consecutive starts (2 cold or 1 hot).\n- After consecutive starts, wait 30 minutes before attempting another start.\n\n4. Safety warnings:  \n- Exceeding starting limits can cause excessive wear or damage to the motor and connected equipment.\n- Ensure the load torque during acceleration stays below 149 N\u00b7m when using star-delta starting.\n- Follow waiting periods to prevent overheating and mechanical stress.\n\n5. Source citations:  \n- Starting limits and procedures are from [Source 3] (EM-30, Starting methods and starting limits).",
+          "retrieved": [
+            {
+              "model": "RSC-15",
+              "section": "Controller start and stop sequence"
+            },
+            {
+              "model": "CP-200",
+              "section": "Operating limits"
+            },
+            {
+              "model": "EM-30",
+              "section": "Starting methods and starting limits"
+            },
+            {
+              "model": "CP-200",
+              "section": "Maintenance schedule"
+            },
+            {
+              "model": "CP-200",
+              "section": "Priming and first start"
+            }
+          ],
+          "scores": {
+            "context_relevance": 0.9,
+            "answer_relevance": 1.0,
+            "faithfulness": 1.0,
+            "correctness": 1.0,
+            "section_hit": 1.0,
+            "reciprocal_rank": 0.3333333333333333,
+            "model_precision": 0.2
+          },
+          "errors": []
+        }
+      ]
+    }
+  }
+}
