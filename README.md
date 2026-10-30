@@ -36,6 +36,10 @@ flowchart LR
 
 Ingestion parses each manual, builds the chunk hierarchy and indexes the level 4 chunks by default. A query runs vector search and, when `GRAPH_ENABLED=true`, a Neo4j full-text search. Each result list contributes `weight / (k + rank)` to a passage's fused score. The five best passages go to the answer generator. A failed graph search is logged and returned in the response metadata; the answer then uses vector results only.
 
+Level 4 chunks hold at most `CHUNK_SIZE_TOKENS` (500) tokens: a paragraph or table longer than that is split at line breaks, then at word boundaries, and each chunk after the first in a subsection starts with up to `CHUNK_OVERLAP_TOKENS` (50) tokens from the end of the previous one.
+
+Every graph node created from a chunk records the documents and equipment it came from in `doc_ids` and `equipment_ids`. Graph search applies the same `oem`, `model` and `doc_id` filters as vector search to those lists; any other filter key is reported as a graph error instead of being ignored. A symptom is linked by `SOLVED_BY` only to the solutions that the extraction lists for that symptom. Deleting a document on the Documents page removes its Manual and Sections and every node that no other document supports; shared nodes keep their other documents. The full-text index covers the text properties of every entity type, including the action type, steps and difficulty of procedures. Schema initialization (`setup_databases.py --graph`, `ingest --graph` and the Process page) drops and recreates an existing `fulltext_index` whose property list differs. A graph built before provenance was added has no `doc_ids`, so filtered graph search finds none of its nodes; rebuild it with `ingest --reset --graph`.
+
 ### Agent layer
 
 ```mermaid
@@ -122,6 +126,8 @@ The offline baseline uses a lexical judge and extractive answer generation, so t
 
 ### Hosted evaluation by retrieval mode
 
+These numbers were measured at commit `a2f53c1`, before the fixes that changed graph extraction and graph retrieval: symptom to solution links, node provenance with filtered graph search, and procedure text in the full-text index. Graph and fused results at the current commit can differ from them. A re-run is pending.
+
 The figures in this subsection come from [results/hosted-2026-10-30.json](results/hosted-2026-10-30.json), one run on 2026-10-30 at commit `a2f53c1` by [scripts/hosted_evaluation.py](scripts/hosted_evaluation.py). Each of the 15 golden questions was answered by `gpt-4.1-mini` from the top 5 fused passages, and the same model, `gpt-4.1-mini`, scored each answer as an LLM judge. Embeddings are `text-embedding-3-large` at 3072 dimensions. The corpus is the 3 Markdown manuals in [sample_data/manuals/](sample_data/manuals/): 55 indexed level 4 chunks in Qdrant, and a Neo4j graph of 1,271 nodes and 1,031 relationships extracted by `gpt-4.1-mini` from every section, subsection and semantic chunk. The FAA PDFs are not in this corpus; see the PDF limitation below. Retrieval settings are the defaults: 10 vector and 10 graph results, RRF k=10, weights 0.6 and 0.4, top 5 to the answer. No judgment and no graph search failed in any mode.
 
 <picture>
@@ -145,7 +151,16 @@ Source: `results/hosted-2026-10-30.json (runs.vector.aggregate, runs.graph.aggre
 
 </details>
 
-- The judge is an LLM, and it is the same model that wrote the answers. The scores are from one run of 15 questions; answers are sampled at temperature 0.3 and judgments at 0.0. Metric definitions are in the offline data table above. Source: [service_manual_rag/rag/answering.py](service_manual_rag/rag/answering.py), [service_manual_rag/evaluation/judges.py](service_manual_rag/evaluation/judges.py).
+- The judge is an LLM, and it is the same model that wrote the answers. The scores are from one run of 15 questions; answers are sampled at temperature 0.3 and judgments at 0.0. Source: [service_manual_rag/rag/answering.py](service_manual_rag/rag/answering.py), [service_manual_rag/evaluation/judges.py](service_manual_rag/evaluation/judges.py).
+- The hosted metrics are defined in the table below. The three retrieval metrics use the same calculation as the offline run. The four answer metrics have the same names as the offline metrics but a different rubric, so hosted and offline values of those four are not comparable.
+
+| Metric | Hosted definition | Offline definition |
+|---|---|---|
+| section hit, recip. rank, model prec. | `retrieval_scores` in ragas_evaluator.py over the top 5 passages | Same calculation; the offline embedder is the hashing embedder, so the passages differ |
+| context rel. | One LLM score from 0 to 1 for the relevance of all top 5 passages together, each cut to its first 500 characters | Mean share of question terms present in each passage |
+| answer rel. | LLM score from 0 (does not answer) to 1 (complete answer) | Share of question terms present in the answer |
+| faithfulness | LLM score: 1 when the answer uses only information in the passages (first 500 characters each), 0 when unsupported | Mean share of answer sentence terms present in the passages |
+| correctness | LLM score from 0 (wrong) to 1 (equivalent to or better than the ground truth) | Token F1 between answer and ground truth, stopwords removed |
 - Fused and vector modes retrieved the same manual model and subsection at each of the 5 ranks for all 15 questions (`per_question[].retrieved` in the results file). Inference from the fusion formula: the best graph result scores 0.4 / 11 = 0.0364, below the fifth vector result at 0.6 / 15 = 0.04, so with these weights graph results cannot enter the top 5 while vector search returns 5 or more passages. Inference: the correctness difference between the two modes (98.7% and 96%) comes from answer generation and judging, not from retrieval.
 - Graph mode scores 0 on section hit, reciprocal rank and model precision by construction. The full-text search returns entity nodes (components, failure modes, solutions and others) that carry no manual model or subsection name, so `retrieval_scores` cannot match them to a golden section. Its answer-level scores are measured: correctness 34.7%, with 10 of 15 questions scored below 0.8 (`runs.graph.per_question`).
 - Faithfulness is 0 for 2 of 15 questions (cp200-03 and rsc15-04) in vector and fused modes. The judge sees the first 500 characters of each passage (`CONTEXT_PREVIEW_CHARS` in judges.py), so an answer drawn from later text in a passage can be scored unsupported; this cause was not checked per question.
@@ -269,7 +284,7 @@ tests/                offline test suite
 - Negative result: 53.3% of retrieved passages come from the manual the question names. The embedded level 4 chunk text starts with the subsection heading but is not prefixed with the model name, so a model name in the question only matches passages whose own text mentions it. `RAGPipeline.query` accepts a `filters` argument that can restrict retrieval to one model; nothing sets it from the question yet.
 - Faithfulness is 100% by construction for the extractive answerer, which only copies retrieved sentences. The metric becomes informative with a generative model.
 - The evaluator follows the RAGAS metric definitions but does not use the ragas package. A failed judgment is recorded under `errors` for that question and left out of the means instead of being replaced by a default score.
-- The knowledge graph path needs a running Neo4j and OpenAI entity extraction. The test suite does not run it against a live database. The vector, graph and fused comparison is measured only in the hosted run, because offline mode has no graph component. Graph search returns entity nodes rather than manual passages, so graph-only retrieval cannot be scored against the golden sections.
+- The knowledge graph path needs a running Neo4j and OpenAI entity extraction. The default test suite checks graph population, provenance, filters and deletion against an in-memory stand-in. `tests/test_graph_contract.py::test_neo4j_round_trip` runs the same checks against a live Neo4j when `SMR_TEST_NEO4J_URI` and `SMR_TEST_NEO4J_PASSWORD` name a throwaway database, which the test clears; it passed against `neo4j:5.26.32-community` on 2026-10-30 and is skipped otherwise. The vector, graph and fused comparison is measured only in the hosted run, because offline mode has no graph component. Graph search returns entity nodes rather than manual passages, so graph-only retrieval cannot be scored against the golden sections.
 - The agents fall back to keyword rules when OpenAI is not configured; image and video analysis needs `GOOGLE_API_KEY`. Agent behaviour is covered by unit tests and a Streamlit page test; no evaluation of the agents is measured.
 - The diagnostic agent searches the manuals only when the conversation holds a symptom or a manufacturer. A first question without either gets a request for more information.
 - The PDF path is tested with stand-ins for Unstructured. The FAA corpus checksums were verified on 2026-10-30. Indexing those PDFs was not run: Unstructured 0.27.35 routes all three to `hi_res`, and its layout model was not downloaded in the environment used. No evaluation on the PDF corpus is recorded.

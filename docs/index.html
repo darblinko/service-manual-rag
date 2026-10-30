@@ -75,7 +75,10 @@ flowchart LR
       <figure class="chart" data-chart="baseline-summary"></figure>
       <figure class="chart" data-chart="offline-metrics"></figure>
       <figure class="chart" data-chart="section-hit-by-category"></figure>
-      <p>Hosted run, 2026-10-30, one run: gpt-4.1-mini writes the answers and, as an LLM judge, scores them; embeddings are text-embedding-3-large. Same 3 manuals and 15 questions, with a Neo4j graph of 1,271 extracted nodes. Fused and vector retrieval returned the same top 5 for all 15 questions, because with weights 0.6 and 0.4 no graph result outranks the fifth vector result. Graph-only retrieval returns entity nodes, which carry no subsection, so its retrieval scores are 0 by construction.</p>
+      <p>Hosted run, 2026-10-30, one run: gpt-4.1-mini writes the answers and, as an LLM judge, scores them; embeddings are text-embedding-3-large. Same 3 manuals and 15 questions, with a Neo4j graph of 1,271 extracted nodes. Fused and vector retrieval returned the same top 5 for all 15 questions, because with weights 0.6 and 0.4 no graph result outranks the fifth vector result. Graph-only retrieval returns entity nodes, which carry no subsection, so its retrieval scores are 0 by construction. The hosted correctness, faithfulness and relevance scores are LLM ratings from 0 to 1, while the offline scores of the same names are lexical overlap, so the two sets are not comparable.</p>
+      <aside class="note">
+        <p>The hosted numbers were measured at commit <code>a2f53c1</code>, before the fixes that changed graph extraction and graph retrieval: symptom to solution links, node provenance with filtered graph search, and procedure text in the full-text index. A re-run is pending.</p>
+      </aside>
       <figure class="chart" data-chart="hosted-by-mode"></figure>
       <aside class="note">
         <p>Sources: <code>results/offline-baseline.json</code> and <code>results/hosted-2026-10-30.json</code>. Reproduce the baseline: <code>LLM_MODE=offline uv run service-manual-rag ingest --reset</code>, then <code>uv run service-manual-rag evaluate --output results/offline-baseline.json</code>. The hosted run: <code>scripts/hosted_evaluation.py</code>, as in the README.</p>
