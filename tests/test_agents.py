@@ -169,6 +169,26 @@ def test_supervisor_extracts_oem_model_and_symptoms():
     assert {"leak", "leaking", "grinding", "noise"} <= set(state["symptoms"])
 
 
+def test_supervisor_does_not_take_an_article_as_the_manufacturer():
+    supervisor = SupervisorAgent()
+    state = create_initial_state("s")
+
+    supervisor._extract_information(state, "The CP-200 discharge pressure is low")
+
+    assert state["equipment_oem"] is None
+    assert state["equipment_model"] == "CP-200"
+
+
+def test_supervisor_reads_manufacturer_from_made_by_phrase():
+    supervisor = SupervisorAgent()
+    state = create_initial_state("s")
+
+    supervisor._extract_information(state, "The unit is made by Northwind, model NW-40")
+
+    assert state["equipment_oem"] == "Northwind"
+    assert state["equipment_model"] == "NW-40"
+
+
 def test_supervisor_uses_known_oems_setting(monkeypatch):
     use_settings(monkeypatch, KNOWN_OEMS="ExampleCo, Northwind Compressors")
     supervisor = SupervisorAgent()

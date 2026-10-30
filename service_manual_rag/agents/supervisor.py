@@ -26,6 +26,13 @@ MANUFACTURER_PATTERNS = [
     r"\b([A-Za-z][A-Za-z]+)\s+[A-Za-z0-9]+[-]?[0-9]+",  # "Brand Model" pattern
 ]
 
+# Words the "Brand Model" pattern can capture that are never a manufacturer name,
+# as in "the CP-200" or "my pump RSC-15".
+NOT_MANUFACTURERS = frozenset(
+    {"a", "an", "the", "my", "our", "your", "their", "this", "that", "these", "those", "its"}
+    | {"pump", "motor", "compressor", "unit", "machine", "equipment", "model"}
+)
+
 # A model number either contains a hyphen or contains at least one digit.
 # Examples: CP-200, RSC-15, EM-30.
 MODEL_PATTERN = r"\b([A-Za-z0-9]+-[A-Za-z0-9]+|[A-Za-z]*[0-9]+[A-Za-z]*)\b"
@@ -253,7 +260,7 @@ class SupervisorAgent:
         """Find a manufacturer name from phrasing such as 'made by X' or 'X CP-200'."""
         for pattern in MANUFACTURER_PATTERNS:
             match = re.search(pattern, message, re.IGNORECASE)
-            if match:
+            if match and match.group(1).strip().lower() not in NOT_MANUFACTURERS:
                 oem = match.group(1).strip()
                 oem = re.sub(
                     r"\s+(mfg|manufacturing|inc|corp|corporation|ltd)\.?$",
