@@ -20,11 +20,11 @@
   <main>
     <section class="intro">
       <h1>service-manual-rag</h1>
-      <p class="lede">Answers technician questions from equipment service manuals with cited passages, using Qdrant vector search, optional Neo4j graph search and Reciprocal Rank Fusion. An offline mode runs the whole pipeline and its evaluation without API keys.</p>
+      <p class="lede">Answers technician questions from equipment service manuals with cited passages, using Qdrant vector search, optional Neo4j graph search and Reciprocal Rank Fusion. A LangGraph supervisor routes multi-turn troubleshooting to a diagnostic agent and an action agent. An offline mode runs the pipeline, its evaluation and the Streamlit UI without API keys.</p>
       <dl class="record">
         <div><dt>Repository</dt><dd>darblinko/service-manual-rag</dd></div>
-        <div><dt>Revision</dt><dd><code>50af7e3</code></dd></div>
-        <div><dt>Measured</dt><dd>2026-10-28</dd></div>
+        <div><dt>Revision</dt><dd><code>189760b</code></dd></div>
+        <div><dt>Measured</dt><dd>2026-10-30</dd></div>
         <div><dt>License</dt><dd>Apache-2.0</dd></div>
       </dl>
     </section>
@@ -52,6 +52,18 @@ flowchart LR
   gsearch -.-> rrf
   rrf --> answer[Answer with citations]
       </pre>
+      <p>The agent layer runs on top of this pipeline. The supervisor classifies each message (troubleshoot, question, record, confirm_action, unclear) with the chat model or with keyword rules, and extracts the manufacturer, model and symptoms. The diagnostic agent rewrites the query, retrieves and re-ranks passages and forms hypotheses; the action agent records the session in the knowledge graph. Each specialist returns to the supervisor, which then writes the reply.</p>
+      <pre class="mermaid">
+flowchart LR
+  message[Message] --> supervisor[Supervisor]
+  supervisor --> diagnostic[Diagnostic agent]
+  supervisor --> action[Action agent]
+  supervisor --> respond[Respond]
+  diagnostic --> supervisor
+  action --> supervisor
+  diagnostic --> rag[Retrieve and re-rank]
+  action -.-> session[(Neo4j session)]
+      </pre>
       <aside class="note">
         <p>Dashed paths run only with <code>GRAPH_ENABLED=true</code>, a Neo4j server and an OpenAI key.</p>
       </aside>
@@ -75,6 +87,9 @@ flowchart LR
 cd service-manual-rag</code></pre></li>
         <li><pre><code>uv sync --extra dev</code></pre></li>
         <li><pre><code>LLM_MODE=offline uv run service-manual-rag quickstart</code></pre></li>
+        <li><pre><code>uv sync --extra dev --extra agents --extra ui
+LLM_MODE=offline uv run service-manual-rag ingest --reset
+LLM_MODE=offline uv run streamlit run ui/app.py</code></pre></li>
       </ol>
     </section>
 
@@ -84,14 +99,16 @@ cd service-manual-rag</code></pre></li>
         <li>4 of 15 questions missed their expected section, including all 3 troubleshooting questions.</li>
         <li>53.3% of retrieved passages come from the manual the question names; retrieval does not filter by the model in the question.</li>
         <li>Faithfulness is 100% by construction for extractive answers.</li>
-        <li>No OpenAI or knowledge graph run is measured in this repository.</li>
+        <li>No OpenAI or knowledge graph run is measured in this repository, so no vector-only, graph-only and fused comparison is recorded; offline mode has no graph component.</li>
+        <li>Agent behaviour is covered by unit tests and a Streamlit page test, not by a measured evaluation. The diagnostic agent searches only when the conversation names a symptom or a manufacturer.</li>
+        <li>A script fetches three public-domain FAA PDFs (17 U.S.C. 105) and verifies their SHA-256 checksums. Indexing them was not run here, and no score on them is recorded.</li>
         <li>The golden set covers 3 synthetic manuals. It detects regressions; it does not estimate accuracy on real manuals.</li>
       </ul>
     </section>
   </main>
 
   <footer>
-    service-manual-rag. Apache-2.0. Figures generated from <code>docs/data.json</code> at <code>50af7e3</code>.
+    service-manual-rag. Apache-2.0. Figures generated from <code>docs/data.json</code> at <code>189760b</code>.
   </footer>
 
   <script src="charts.js" defer></script>

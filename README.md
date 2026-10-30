@@ -9,10 +9,10 @@ Retrieval-augmented question answering over industrial equipment service manuals
 
 ## What it does
 
-- Parses manuals (Markdown or text; PDF with the `pdf` extra) into a four-level chunk hierarchy: document, section, subsection, semantic chunk.
+- Parses manuals (Markdown or text; PDF with the `pdf` extra) into a four-level chunk hierarchy: document, section, subsection, semantic chunk. A script downloads a public-domain FAA PDF corpus and checks each file against a recorded SHA-256.
 - Indexes chunks in Qdrant and, optionally, extracts entities such as components, symptoms, procedures and parts into a Neo4j knowledge graph.
 - Answers a question from the top passages of both retrievers, merged with weighted Reciprocal Rank Fusion, and cites each passage as `[Source N]`.
-- Runs a LangGraph workflow with a supervisor, a diagnostic agent and an action agent for multi-turn troubleshooting, with a Streamlit UI.
+- Runs a LangGraph workflow with a supervisor, a diagnostic agent and an action agent for multi-turn troubleshooting, with a Streamlit UI that also runs offline.
 - Scores the pipeline on a golden question set with RAGAS-style metrics plus direct retrieval metrics.
 - Runs end to end without network access or API keys: an offline mode swaps in a hashing embedder, an extractive answerer and a lexical judge.
 
@@ -36,7 +36,39 @@ flowchart LR
 
 Ingestion parses each manual, builds the chunk hierarchy and indexes the level 4 chunks by default. A query runs vector search and, when `GRAPH_ENABLED=true`, a Neo4j full-text search. Each result list contributes `weight / (k + rank)` to a passage's fused score. The five best passages go to the answer generator. A failed graph search is logged and returned in the response metadata; the answer then uses vector results only.
 
-`LLM_MODE` selects the components. `openai` uses `text-embedding-3-large` embeddings, a chat model for answers and an LLM judge. `offline` uses deterministic stand-ins with no network access. `auto`, the default, picks `openai` when `OPENAI_API_KEY` is set. Defaults are in [service_manual_rag/config/settings.py](service_manual_rag/config/settings.py) and every variable is listed in [.env.example](.env.example).
+### Agent layer
+
+```mermaid
+flowchart LR
+  message[Technician message] --> supervisor[Supervisor<br/>intent, OEM, model, symptoms]
+  supervisor -- troubleshoot, question or media --> diagnostic[Diagnostic agent]
+  supervisor -- record or confirm_action --> action[Action agent]
+  supervisor -- unclear or answered --> respond[Respond]
+  diagnostic --> supervisor
+  action --> supervisor
+  respond --> reply[Reply, wait for next message]
+  diagnostic --> rag[Rewrite query, retrieve,<br/>re-rank, conversation memory]
+  diagnostic -. GOOGLE_API_KEY .-> vlm[Image and video analysis<br/>Gemini]
+  action -. GRAPH_ENABLED .-> session[(Neo4j session node)]
+```
+
+The graph is built in [service_manual_rag/agents/workflow.py](service_manual_rag/agents/workflow.py). The supervisor classifies each message as `troubleshoot`, `question`, `record`, `confirm_action` or `unclear`, with the chat model when OpenAI is configured and with keyword rules otherwise. It extracts the manufacturer from `KNOWN_OEMS` or a phrase such as "made by X", plus the model and symptoms. Uploaded images or video go to the diagnostic agent whatever the intent.
+
+The diagnostic agent searches the manuals when the state holds a symptom or a manufacturer. The search rewrites the query (chat model, or offline synonym expansion), retrieves passages, re-ranks them (cross-encoder when `sentence-transformers` is installed, score-based otherwise) and stores each turn in the Qdrant collection `conversation_memory`. Hypotheses come from the LLM reasoner or from keyword rules; with `GRAPH_ENABLED=true` it also turns recorded sessions with matching symptoms into hypotheses. The action agent records the session as a `TroubleshootingSession` node for those later lookups, which needs the knowledge graph. After a specialist agent returns, the supervisor routes the same message to `respond`, which writes the reply.
+
+### Configuration
+
+`LLM_MODE` selects the components. `openai` uses `text-embedding-3-large` embeddings, a chat model for answers and an LLM judge. `offline` uses deterministic stand-ins with no network access. `auto`, the default, picks `openai` when `OPENAI_API_KEY` is set. Defaults are in [service_manual_rag/config/settings.py](service_manual_rag/config/settings.py) and every variable is listed in [.env.example](.env.example). Model names are environment variables:
+
+| Variable | Default | Used by |
+|---|---|---|
+| `OPENAI_MODEL` | `gpt-4.1-mini` | Answers, LLM judge, entity extraction, supervisor intent, diagnostic reasoning, query rewriting |
+| `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-large` (3072 dimensions) | Embeddings in `openai` mode |
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Image and video analysis, only with `GOOGLE_API_KEY` |
+| `RERANKER_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Agent re-ranker, only with `sentence-transformers` installed |
+| `PDF_STRATEGY` | `hi_res` | Unstructured partition strategy for PDF manuals |
+
+The chat call sites set `temperature`, so `OPENAI_MODEL` must name a model that accepts it; the GPT-5 reasoning models reject a non-default temperature.
 
 ## Results
 
@@ -82,7 +114,7 @@ Source: `results/offline-baseline.json (by_category.*.section_hit)`
 
 </details>
 
-The offline numbers measure lexical overlap. They are a reproducible floor for regression tests and are not comparable with LLM-judged RAGAS scores. With `LLM_MODE=openai` the same command scores the OpenAI pipeline with an LLM judge; no such run is recorded in this repository.
+The offline baseline uses a lexical judge and extractive answer generation, so these numbers measure lexical overlap. They are a reproducible floor for regression tests and are not comparable with LLM-judged RAGAS scores. Graph retrieval is off in this run, so the scores are for vector retrieval alone. With `LLM_MODE=openai` the same command scores the OpenAI pipeline with an LLM judge; no such run is recorded in this repository.
 
 ## Quickstart
 
@@ -103,18 +135,25 @@ uv run service-manual-rag ask "What is the torque for the CP-200 impeller nut?"
 uv run service-manual-rag evaluate --golden-set sample_data/golden_set.json
 ```
 
-Full test suite, lint and the UI:
+Full test suite and lint:
 
 ```bash
 uv sync --extra dev --extra agents --extra ui
 uv run pytest -q
 uvx ruff@0.17.3 check . && uvx ruff@0.17.3 format --check .
-uv run streamlit run ui/app.py
 ```
 
-The knowledge graph panel on the Agent Chat page also needs `streamlit-agraph`, which is not in the `ui` extra.
+The Streamlit UI in offline mode, on the sample manuals:
 
-OpenAI mode: copy `.env.example` to `.env`, set `OPENAI_API_KEY` and `LLM_MODE=openai`, then run `ingest --reset` again, because the collection is sized for the active embedder. Graph retrieval: set `NEO4J_PASSWORD` and `GRAPH_ENABLED=true`, then `docker compose up -d neo4j`. `docker compose up -d qdrant` with `QDRANT_MODE=server` replaces the embedded store.
+```bash
+uv sync --extra dev --extra agents --extra ui
+LLM_MODE=offline uv run service-manual-rag ingest --reset
+LLM_MODE=offline uv run streamlit run ui/app.py
+```
+
+The pages are Process, Query, Documents and Agent Chat. In offline mode Agent Chat shows a banner, routes with keyword rules and answers with excerpts from the indexed manuals. A first message needs a manufacturer or a symptom before the diagnostic agent searches, for example "What is the impeller nut torque on the ExampleCo CP-200?". The knowledge graph panel on the Agent Chat page also needs `streamlit-agraph`, which is not in the `ui` extra.
+
+OpenAI mode: copy `.env.example` to `.env`, set `OPENAI_API_KEY` and `LLM_MODE=openai`, then run `ingest --reset` again, because the collection is sized for the active embedder. Graph retrieval: set `NEO4J_PASSWORD` and `GRAPH_ENABLED=true` in `.env`, then `docker compose up -d neo4j`; compose and the application both read `NEO4J_PASSWORD`. Compose has a development fallback for it only so that `docker compose up -d qdrant` starts without one. `docker compose up -d qdrant` with `QDRANT_MODE=server` replaces the embedded store.
 
 ## Sample data
 
@@ -128,6 +167,28 @@ The sample corpus is original synthetic text written for this repository. The ma
 | [sample_data/golden_set.json](sample_data/golden_set.json) | 15 questions, 5 per manual, 3 per category, each with a ground truth and an expected subsection | Apache-2.0 |
 
 Each manual states its license in its front matter. Manuals use front matter for `oem` and `model`, `#` to `###` headings, `<!-- page: N -->` page markers, list items and pipe tables; the conventions are documented in [service_manual_rag/processing/markdown_parser.py](service_manual_rag/processing/markdown_parser.py).
+
+## Public-domain PDF corpus
+
+[scripts/fetch_public_corpus.py](scripts/fetch_public_corpus.py) downloads the PDFs listed in [sample_data/public_domain/manifest.json](sample_data/public_domain/manifest.json) into `data/public_corpus/`, which git ignores. It keeps a file only when its SHA-256 matches the manifest, and then indexes it through the PDF parser. The PDFs are not committed.
+
+| id | Document | Pages | Bytes | URL |
+|---|---|---|---|---|
+| `faa-h-8083-32b-ch10` | Aviation Maintenance Technician Handbook, Powerplant (FAA-H-8083-32B, 2023), Chapter 10: Engine Maintenance and Operation | 65 | 14,227,775 | https://www.faa.gov/sites/faa.gov/files/12_amtp_ch10_0.pdf |
+| `faa-h-8083-32b-ch06` | Aviation Maintenance Technician Handbook, Powerplant (FAA-H-8083-32B, 2023), Chapter 6: Lubrication and Cooling Systems | 40 | 19,072,507 | https://www.faa.gov/sites/faa.gov/files/08_amtp_ch6.pdf |
+| `faa-ac-150-5340-26c` | AC 150/5340-26C, Maintenance of Airport Visual Aid Facilities (2014) | 144 | 2,683,370 | https://www.faa.gov/documentLibrary/media/Advisory_Circular/150-5340-26c.pdf |
+
+All three are publications of the Federal Aviation Administration. As works of the United States Government they are not subject to copyright in the United States (17 U.S.C. 105). The handbook front matter credits some images to third parties; the pipeline indexes text only. The two handbook chapters contain symptom, cause and remedy tables (Figures 6-30, 10-52, 10-75 and 10-76); the advisory circular describes troubleshooting of series lighting circuits in Chapter 6.
+
+```bash
+uv sync --extra dev --extra pdf
+uv run python scripts/fetch_public_corpus.py --no-ingest   # download and verify only
+uv run python scripts/fetch_public_corpus.py               # verify, then index into the collection
+```
+
+`--reset` recreates the collection first, `--strategy` overrides `PDF_STRATEGY` and `--levels` selects the chunk levels to index. The `hi_res` strategy downloads a layout model on first use and needs poppler and tesseract; `fast` reads the text layer, which all three files have. Unstructured also needs the NLTK data `punkt_tab` and `averaged_perceptron_tagger_eng`; without it no text is extracted and the parser raises an error. The agents find these documents by manufacturer when `KNOWN_OEMS` includes `FAA`, for example `KNOWN_OEMS=ExampleCo,FAA`.
+
+On 2026-10-30 faa.gov answered the script's request with HTTP 403. In that case the error names the target file: download the PDF in a browser, save it under that name and run the script again; it verifies a file already in place and does not download it.
 
 ## Project layout
 
@@ -144,8 +205,8 @@ service_manual_rag/
   agents/             supervisor, diagnostic and action agents, LangGraph workflow
   evaluation/         golden set loader, judges, RAGAS-style evaluator
 ui/                   Streamlit app and pages
-scripts/              database setup, cleanup and retrieval diagnostics
-sample_data/          synthetic manuals and the golden question set
+scripts/              public PDF corpus fetch, database setup, cleanup, retrieval diagnostics
+sample_data/          synthetic manuals, golden question set, public-domain PDF manifest
 results/              committed offline baseline
 docs/                 landing page, chart data and README figures
 tests/                offline test suite
@@ -160,8 +221,10 @@ tests/                offline test suite
 - Negative result: 53.3% of retrieved passages come from the manual the question names. The embedded level 4 chunk text starts with the subsection heading but is not prefixed with the model name, so a model name in the question only matches passages whose own text mentions it. `RAGPipeline.query` accepts a `filters` argument that can restrict retrieval to one model; nothing sets it from the question yet.
 - Faithfulness is 100% by construction for the extractive answerer, which only copies retrieved sentences. The metric becomes informative with a generative model.
 - The evaluator follows the RAGAS metric definitions but does not use the ragas package. A failed judgment is recorded under `errors` for that question and left out of the means instead of being replaced by a default score.
-- The knowledge graph path needs a running Neo4j and OpenAI entity extraction. The test suite does not run it against a live database, and no graph result is measured here.
-- The agents fall back to keyword rules when OpenAI is not configured; image and video analysis needs `GOOGLE_API_KEY`. Agent behaviour is covered by unit tests, not by a measured evaluation.
+- The knowledge graph path needs a running Neo4j and OpenAI entity extraction. The test suite does not run it against a live database. No vector-only, graph-only and fused comparison is recorded, because offline mode has no graph component; measuring one needs `OPENAI_API_KEY` and Neo4j.
+- The agents fall back to keyword rules when OpenAI is not configured; image and video analysis needs `GOOGLE_API_KEY`. Agent behaviour is covered by unit tests and a Streamlit page test; no evaluation of the agents is measured.
+- The diagnostic agent searches the manuals only when the conversation holds a symptom or a manufacturer. A first question without either gets a request for more information.
+- The PDF path is tested with stand-ins for Unstructured. The FAA corpus checksums were verified on 2026-10-30; indexing those PDFs was not run, because the NLTK data was not available offline in the environment used, and no evaluation on the PDF corpus is recorded.
 - The golden set has 15 questions over 3 synthetic manuals. It detects regressions; it does not estimate accuracy on real manuals.
 
 ## License
