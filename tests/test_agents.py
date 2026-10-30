@@ -29,7 +29,7 @@ from service_manual_rag.agents.state import (
 )
 from service_manual_rag.agents.supervisor import SupervisorAgent, find_known_oem, parse_known_oems
 from service_manual_rag.agents.vlm_service import VLMService
-from service_manual_rag.config import MissingCredentialError, get_settings
+from service_manual_rag.config import MissingCredentialError, OfflineModeError, get_settings
 
 SCOPE_MODULES = [
     "service_manual_rag.agents",
@@ -312,7 +312,8 @@ def test_llm_reasoner_limits_completion_tokens():
     assert "max_tokens" not in client.requests[0]
 
 
-def test_vlm_service_needs_google_key_only_for_analysis(tmp_path):
+def test_vlm_service_needs_google_key_only_for_analysis(monkeypatch, tmp_path):
+    use_settings(monkeypatch, LLM_MODE="auto")
     service = VLMService(media_dir=tmp_path / "media")
 
     saved = service.save_media(b"data", "../escape.png")
@@ -320,6 +321,33 @@ def test_vlm_service_needs_google_key_only_for_analysis(tmp_path):
 
     with pytest.raises(MissingCredentialError, match="GOOGLE_API_KEY"):
         service.analyze_image(saved)
+
+
+def test_vlm_service_refuses_gemini_in_offline_mode_even_with_a_key(monkeypatch, tmp_path):
+    use_settings(monkeypatch, GOOGLE_API_KEY="placeholder-key")
+    service = VLMService(media_dir=tmp_path)
+    monkeypatch.setitem(sys.modules, "google.generativeai", None)
+
+    with pytest.raises(OfflineModeError, match="LLM_MODE=offline"):
+        service.analyze_image("missing.png")
+    with pytest.raises(OfflineModeError):
+        service.analyze_video("missing.mp4")
+
+
+def test_reranker_does_not_load_a_cross_encoder_in_offline_mode(monkeypatch):
+    def refuse_load(model_name):
+        raise AssertionError("cross-encoder loaded in offline mode")
+
+    monkeypatch.setattr(ContextualReranker, "_load_cross_encoder", staticmethod(refuse_load))
+
+    assert ContextualReranker(use_cross_encoder=True).use_cross_encoder is False
+
+
+def test_explicit_openai_key_is_refused_in_offline_mode():
+    from service_manual_rag.agents.retrieval import QueryRewriter
+
+    with pytest.raises(OfflineModeError):
+        QueryRewriter(api_key="placeholder-key")
 
 
 def test_graph_manager_not_constructed_when_graph_disabled():

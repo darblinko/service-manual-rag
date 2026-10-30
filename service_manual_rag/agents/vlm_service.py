@@ -38,6 +38,7 @@ class VLMService:
             settings: Application settings; defaults to ``get_settings()``.
         """
         settings = settings or get_settings()
+        self.settings = settings
         self.api_key = api_key or settings.google_api_key
         self.model_name = settings.gemini_model
         self.media_dir = Path(media_dir) if media_dir else DEFAULT_MEDIA_DIR
@@ -47,6 +48,7 @@ class VLMService:
     def _get_model(self) -> Any:
         """Configure Gemini on first use and return the generative model."""
         if self._model is None:
+            self.settings.require_online("Image and video analysis through Gemini")
             if not self.api_key:
                 raise MissingCredentialError(
                     "GOOGLE_API_KEY is not set. Image and video analysis needs a Google AI "
@@ -77,6 +79,7 @@ class VLMService:
             Dictionary with findings, labels, extracted_text and confidence
 
         Raises:
+            OfflineModeError: LLM_MODE=offline.
             MissingCredentialError: GOOGLE_API_KEY is not set.
         """
         model = self._get_model()
@@ -112,6 +115,7 @@ class VLMService:
             Dictionary with findings, labels, extracted_text and confidence
 
         Raises:
+            OfflineModeError: LLM_MODE=offline.
             MissingCredentialError: GOOGLE_API_KEY is not set.
         """
         model = self._get_model()

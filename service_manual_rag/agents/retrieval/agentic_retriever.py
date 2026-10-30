@@ -46,7 +46,7 @@ class AgenticRetriever:
         self.model = model or settings.openai_model
         self.client: OpenAI | None = None
         if api_key or settings.use_openai:
-            self.client = OpenAI(api_key=api_key or settings.require_openai_key())
+            self.client = OpenAI(api_key=settings.require_openai_key(api_key))
 
         mode = self.model if self.client else "offline heuristic assessment"
         logger.info(f"AgenticRetriever initialized: {mode}")

@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 from neo4j import GraphDatabase
 
-from service_manual_rag.config import MissingCredentialError
+from service_manual_rag.config import MissingCredentialError, OfflineModeError, get_settings
 from service_manual_rag.embeddings import VectorIndexer, create_embedding_service
 from service_manual_rag.graph_builder import EntityExtractor, GraphPopulator
 from service_manual_rag.knowledge_graph import Neo4JManager
@@ -39,9 +39,16 @@ def test_neo4j_manager_requires_password_before_connecting(monkeypatch):
         Neo4JManager()
 
 
-def test_entity_extractor_requires_openai_key():
+def test_entity_extractor_requires_openai_key(monkeypatch):
+    monkeypatch.setenv("LLM_MODE", "openai")
+    get_settings.cache_clear()
     with pytest.raises(MissingCredentialError, match="OPENAI_API_KEY"):
         EntityExtractor()
+
+
+def test_entity_extractor_refuses_offline_mode_even_with_a_key():
+    with pytest.raises(OfflineModeError, match="LLM_MODE=offline"):
+        EntityExtractor(api_key="placeholder-key")
 
 
 def test_ui_and_script_files_found():

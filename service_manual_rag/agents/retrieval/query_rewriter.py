@@ -74,7 +74,7 @@ class QueryRewriter:
         self.model = model or settings.openai_model
         self.client: OpenAI | None = None
         if api_key or settings.use_openai:
-            self.client = OpenAI(api_key=api_key or settings.require_openai_key())
+            self.client = OpenAI(api_key=settings.require_openai_key(api_key))
 
         mode = self.model if self.client else "offline keyword expansion"
         logger.info(f"QueryRewriter initialized: {mode}")

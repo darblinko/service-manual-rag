@@ -12,6 +12,10 @@ class MissingCredentialError(RuntimeError):
     """Raised when a component needs a credential that is not configured."""
 
 
+class OfflineModeError(MissingCredentialError):
+    """Raised when LLM_MODE=offline and a component asks for a remote service."""
+
+
 class Settings(BaseSettings):
     """Application settings.
 
@@ -118,14 +122,38 @@ class Settings(BaseSettings):
             return True
         return bool(self.openai_api_key)
 
-    def require_openai_key(self) -> str:
-        """Return the OpenAI key or raise a clear error naming the variable."""
-        if not self.openai_api_key:
+    @property
+    def offline(self) -> bool:
+        """True when LLM_MODE=offline, which forbids remote API calls and model downloads."""
+        return self.llm_mode == "offline"
+
+    def require_online(self, service: str) -> None:
+        """Raise OfflineModeError when LLM_MODE=offline.
+
+        Args:
+            service: Name of the remote service, used in the error message.
+        """
+        if self.offline:
+            raise OfflineModeError(
+                f"{service} is not available with LLM_MODE=offline, which makes no remote "
+                "API calls and downloads no models. Set LLM_MODE=auto or LLM_MODE=openai."
+            )
+
+    def require_openai_key(self, api_key: str | None = None) -> str:
+        """Return the explicit key or the configured OpenAI key.
+
+        Raises:
+            OfflineModeError: LLM_MODE=offline.
+            MissingCredentialError: Neither key is set.
+        """
+        self.require_online("The OpenAI API")
+        key = api_key or self.openai_api_key
+        if not key:
             raise MissingCredentialError(
                 "OPENAI_API_KEY is not set. Set it in the environment or in .env, "
                 "or set LLM_MODE=offline to use the deterministic offline components."
             )
-        return self.openai_api_key
+        return key
 
     def require_neo4j_password(self) -> str:
         """Return the Neo4j password or raise a clear error naming the variable."""

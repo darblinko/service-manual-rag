@@ -94,7 +94,7 @@ class EmbeddingService:
         self.dimensions = dimensions or settings.openai_embedding_dimensions
         self.cache_dir = cache_dir or settings.cache_dir / "embeddings"
         self.use_cache = use_cache
-        self.client = OpenAI(api_key=api_key or settings.require_openai_key())
+        self.client = OpenAI(api_key=settings.require_openai_key(api_key))
         self.rpm_limit = settings.openai_rpm
         self._request_times: list[float] = []
 

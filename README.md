@@ -58,7 +58,7 @@ The diagnostic agent searches the manuals when the state holds a symptom or a ma
 
 ### Configuration
 
-`LLM_MODE` selects the components. `openai` uses `text-embedding-3-large` embeddings, a chat model for answers and an LLM judge. `offline` uses deterministic stand-ins with no network access. `auto`, the default, picks `openai` when `OPENAI_API_KEY` is set. Defaults are in [service_manual_rag/config/settings.py](service_manual_rag/config/settings.py) and every variable is listed in [.env.example](.env.example). Model names are environment variables:
+`LLM_MODE` selects the components. `openai` uses `text-embedding-3-large` embeddings, a chat model for answers and an LLM judge. `offline` uses deterministic stand-ins with no network access: it refuses OpenAI and Gemini calls even when a key is set, and the agent re-ranker does not load the cross-encoder. PDF parsing is outside that guarantee, because the Unstructured `hi_res` strategy downloads a layout model on first use in every mode. `auto`, the default, picks `openai` when `OPENAI_API_KEY` is set. Defaults are in [service_manual_rag/config/settings.py](service_manual_rag/config/settings.py) and every variable is listed in [.env.example](.env.example). Model names are environment variables:
 
 | Variable | Default | Used by |
 |---|---|---|

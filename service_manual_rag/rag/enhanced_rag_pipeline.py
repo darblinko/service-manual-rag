@@ -82,7 +82,7 @@ class EnhancedRAGPipeline:
         self.model = model or settings.openai_model
         self.client: OpenAI | None = None
         if api_key or settings.use_openai:
-            self.client = OpenAI(api_key=api_key or settings.require_openai_key())
+            self.client = OpenAI(api_key=settings.require_openai_key(api_key))
 
         self.use_query_rewriting = use_query_rewriting
         self.use_reranking = use_reranking

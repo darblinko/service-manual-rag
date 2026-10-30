@@ -262,7 +262,7 @@ class EntityExtractor:
             max_concurrent: Maximum concurrent API calls (default 2 to stay under rate limits)
         """
         settings = get_settings()
-        resolved_api_key = api_key or settings.require_openai_key()
+        resolved_api_key = settings.require_openai_key(api_key)
         self.model = model or settings.openai_model
         self.batch_size = batch_size
         self.max_concurrent = max_concurrent
