@@ -72,7 +72,11 @@ The chat call sites set `temperature`, so `OPENAI_MODEL` must name a model that 
 
 ## Results
 
-All figures below come from [results/offline-baseline.json](results/offline-baseline.json), produced by `service-manual-rag evaluate --output results/offline-baseline.json` in offline mode on the 3 manuals in [sample_data/manuals/](sample_data/manuals/) and the 15 questions in [sample_data/golden_set.json](sample_data/golden_set.json). The run is deterministic; CI regenerates the file and fails if it changes. The chart data is in [docs/data.json](docs/data.json).
+Two runs are recorded: an offline baseline and one hosted run with an LLM judge. The chart data for both is in [docs/data.json](docs/data.json).
+
+### Offline baseline
+
+The figures in this subsection come from [results/offline-baseline.json](results/offline-baseline.json), produced by `service-manual-rag evaluate --output results/offline-baseline.json` in offline mode on the 3 manuals in [sample_data/manuals/](sample_data/manuals/) and the 15 questions in [sample_data/golden_set.json](sample_data/golden_set.json). The run is deterministic; CI regenerates the file and fails if it changes.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/figures/offline-metrics-dark.svg">
@@ -114,7 +118,47 @@ Source: `results/offline-baseline.json (by_category.*.section_hit)`
 
 </details>
 
-The offline baseline uses a lexical judge and extractive answer generation, so these numbers measure lexical overlap. They are a reproducible floor for regression tests and are not comparable with LLM-judged RAGAS scores. Graph retrieval is off in this run, so the scores are for vector retrieval alone. With `LLM_MODE=openai` the same command scores the OpenAI pipeline with an LLM judge; no such run is recorded in this repository.
+The offline baseline uses a lexical judge and extractive answer generation, so these numbers measure lexical overlap. They are a reproducible floor for regression tests and are not comparable with LLM-judged RAGAS scores. Graph retrieval is off in this run, so the scores are for vector retrieval alone.
+
+### Hosted evaluation by retrieval mode
+
+The figures in this subsection come from [results/hosted-2026-10-30.json](results/hosted-2026-10-30.json), one run on 2026-10-30 at commit `a2f53c1` by [scripts/hosted_evaluation.py](scripts/hosted_evaluation.py). Each of the 15 golden questions was answered by `gpt-4.1-mini` from the top 5 fused passages, and the same model, `gpt-4.1-mini`, scored each answer as an LLM judge. Embeddings are `text-embedding-3-large` at 3072 dimensions. The corpus is the 3 Markdown manuals in [sample_data/manuals/](sample_data/manuals/): 55 indexed level 4 chunks in Qdrant, and a Neo4j graph of 1,271 nodes and 1,031 relationships extracted by `gpt-4.1-mini` from every section, subsection and semantic chunk. The FAA PDFs are not in this corpus; see the PDF limitation below. Retrieval settings are the defaults: 10 vector and 10 graph results, RRF k=10, weights 0.6 and 0.4, top 5 to the answer. No judgment and no graph search failed in any mode.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/hosted-by-mode-dark.svg">
+  <img alt="vector: section hit 100%, recip. rank 92%, model prec. 71%, context rel. 90%, answer rel. 100%, faithfulness 87%, correctness 99%; graph: section hit 0%, recip. rank 0%, model prec. 0%, context rel. 55%, answer rel. 91%, faithfulness 100%, correctness 35%; fused: section hit 100%, recip. rank 92%, model prec. 71%, context rel. 90%, answer rel. 100%, faithfulness 87%, correctness 96%." src="docs/figures/hosted-by-mode-light.svg" width="760">
+</picture>
+
+<details><summary>Data table</summary>
+
+|  | vector | graph | fused |
+|---|---|---|---|
+| section hit | 100% | 0% | 100% |
+| recip. rank | 92.2% | 0% | 92.2% |
+| model prec. | 70.7% | 0% | 70.7% |
+| context rel. | 90% | 55.3% | 90% |
+| answer rel. | 100% | 90.7% | 100% |
+| faithfulness | 86.7% | 100% | 86.7% |
+| correctness | 98.7% | 34.7% | 96% |
+
+Source: `results/hosted-2026-10-30.json (runs.vector.aggregate, runs.graph.aggregate, runs.fused.aggregate)`
+
+</details>
+
+- The judge is an LLM, and it is the same model that wrote the answers. The scores are from one run of 15 questions; answers are sampled at temperature 0.3 and judgments at 0.0. Metric definitions are in the offline data table above. Source: [service_manual_rag/rag/answering.py](service_manual_rag/rag/answering.py), [service_manual_rag/evaluation/judges.py](service_manual_rag/evaluation/judges.py).
+- Fused and vector modes retrieved the same manual model and subsection at each of the 5 ranks for all 15 questions (`per_question[].retrieved` in the results file). Inference from the fusion formula: the best graph result scores 0.4 / 11 = 0.0364, below the fifth vector result at 0.6 / 15 = 0.04, so with these weights graph results cannot enter the top 5 while vector search returns 5 or more passages. Inference: the correctness difference between the two modes (98.7% and 96%) comes from answer generation and judging, not from retrieval.
+- Graph mode scores 0 on section hit, reciprocal rank and model precision by construction. The full-text search returns entity nodes (components, failure modes, solutions and others) that carry no manual model or subsection name, so `retrieval_scores` cannot match them to a golden section. Its answer-level scores are measured: correctness 34.7%, with 10 of 15 questions scored below 0.8 (`runs.graph.per_question`).
+- Faithfulness is 0 for 2 of 15 questions (cp200-03 and rsc15-04) in vector and fused modes. The judge sees the first 500 characters of each passage (`CONTEXT_PREVIEW_CHARS` in judges.py), so an answer drawn from later text in a passage can be scored unsupported; this cause was not checked per question.
+- Token usage of the answer and judge calls is in `runs.*.usage`: 225 chat calls, 152,614 prompt and 39,482 completion tokens over the three modes. Entity extraction during ingestion is not counted there.
+
+Reproduce, with `OPENAI_API_KEY` and `NEO4J_PASSWORD` set and `docker compose up -d neo4j` running:
+
+```bash
+export LLM_MODE=openai GRAPH_ENABLED=true QDRANT_LOCAL_PATH=data/qdrant_hosted
+uv run service-manual-rag ingest --reset --graph
+uv run python scripts/hosted_evaluation.py --output results/hosted-$(date +%F).json \
+  --corpus sample_data/manuals/*.md
+```
 
 ## Quickstart
 
@@ -131,6 +175,7 @@ LLM_MODE=offline uv run service-manual-rag quickstart
 
 ```bash
 uv run service-manual-rag ingest --manuals path/to/manuals --reset
+uv run service-manual-rag ingest --reset --graph   # also build the Neo4j graph (OpenAI, Neo4j)
 uv run service-manual-rag ask "What is the torque for the CP-200 impeller nut?"
 uv run service-manual-rag evaluate --golden-set sample_data/golden_set.json
 ```
@@ -186,7 +231,7 @@ uv run python scripts/fetch_public_corpus.py --no-ingest   # download and verify
 uv run python scripts/fetch_public_corpus.py               # verify, then index into the collection
 ```
 
-`--reset` recreates the collection first, `--strategy` overrides `PDF_STRATEGY` and `--levels` selects the chunk levels to index. The `hi_res` strategy downloads a layout model on first use and needs poppler and tesseract; `fast` reads the text layer, which all three files have. Unstructured also needs the NLTK data `punkt_tab` and `averaged_perceptron_tagger_eng`; without it no text is extracted and the parser raises an error. The agents find these documents by manufacturer when `KNOWN_OEMS` includes `FAA`, for example `KNOWN_OEMS=ExampleCo,FAA`.
+`--reset` recreates the collection first, `--strategy` overrides `PDF_STRATEGY` and `--levels` selects the chunk levels to index. `--graph` also extracts entities from every chunk into Neo4j, as `ingest --graph` does. The `hi_res` strategy downloads a layout model on first use and needs poppler and tesseract; `fast` reads the text layer. All three files have a text layer, but Unstructured 0.27.35 (the version in uv.lock) flags each of them as too complex for text extraction, because a page exceeds its graphics operator thresholds, and falls back to `hi_res` even under `fast` (checked with `unstructured.partition.pdf.is_pdf_too_complex` on 2026-10-30). Indexing them therefore needs the `hi_res` layout model. Unstructured also sends a telemetry request to packages.unstructured.io on import unless `DO_NOT_TRACK` or `SCARF_NO_ANALYTICS` is set. The locked Unstructured 0.27.35 does not install nltk, so the NLTK data `punkt_tab` and `averaged_perceptron_tagger_eng` was not needed in this environment; when no text is extracted the parser raises an error. The agents find these documents by manufacturer when `KNOWN_OEMS` includes `FAA`, for example `KNOWN_OEMS=ExampleCo,FAA`.
 
 On 2026-10-30 faa.gov answered the script's request with HTTP 403. In that case the error names the target file: download the PDF in a browser, save it under that name and run the script again; it verifies a file already in place and does not download it.
 
@@ -207,7 +252,7 @@ service_manual_rag/
 ui/                   Streamlit app and pages
 scripts/              public PDF corpus fetch, database setup, cleanup, retrieval diagnostics
 sample_data/          synthetic manuals, golden question set, public-domain PDF manifest
-results/              committed offline baseline
+results/              committed offline baseline and hosted run
 docs/                 landing page, chart data and README figures
 tests/                offline test suite
 ```
@@ -215,16 +260,16 @@ tests/                offline test suite
 ## Design decisions and limitations
 
 - Four-level chunks keep section and subsection context for each passage. Only level 4 chunks are indexed by default (`ingest --levels` changes this), so the evaluation measures passage-level retrieval.
-- RRF uses k=10 instead of the common 60, because each result list holds at most 10 items; weights are 0.6 vector and 0.4 graph. Neither value was tuned on a measured graph run.
+- RRF uses k=10 instead of the common 60, because each result list holds at most 10 items; weights are 0.6 vector and 0.4 graph. Neither value was tuned. In the hosted run these weights kept every graph result out of the top 5, so fused retrieval equalled vector retrieval; see the hosted results above.
 - The offline embedder hashes unigrams and bigrams into 512 dimensions after dropping stopwords. It matches shared terms only.
 - Negative result: 4 of 15 questions missed their expected section, including all 3 troubleshooting questions. The missed questions share some terms with their target subsection (for example the alarm code `e06` in rsc15-04), but the hashing embedder ranked passages from other subsections higher, often from other manuals. Source: `per_question` in results/offline-baseline.json.
 - Negative result: 53.3% of retrieved passages come from the manual the question names. The embedded level 4 chunk text starts with the subsection heading but is not prefixed with the model name, so a model name in the question only matches passages whose own text mentions it. `RAGPipeline.query` accepts a `filters` argument that can restrict retrieval to one model; nothing sets it from the question yet.
 - Faithfulness is 100% by construction for the extractive answerer, which only copies retrieved sentences. The metric becomes informative with a generative model.
 - The evaluator follows the RAGAS metric definitions but does not use the ragas package. A failed judgment is recorded under `errors` for that question and left out of the means instead of being replaced by a default score.
-- The knowledge graph path needs a running Neo4j and OpenAI entity extraction. The test suite does not run it against a live database. No vector-only, graph-only and fused comparison is recorded, because offline mode has no graph component; measuring one needs `OPENAI_API_KEY` and Neo4j.
+- The knowledge graph path needs a running Neo4j and OpenAI entity extraction. The test suite does not run it against a live database. The vector, graph and fused comparison is measured only in the hosted run, because offline mode has no graph component. Graph search returns entity nodes rather than manual passages, so graph-only retrieval cannot be scored against the golden sections.
 - The agents fall back to keyword rules when OpenAI is not configured; image and video analysis needs `GOOGLE_API_KEY`. Agent behaviour is covered by unit tests and a Streamlit page test; no evaluation of the agents is measured.
 - The diagnostic agent searches the manuals only when the conversation holds a symptom or a manufacturer. A first question without either gets a request for more information.
-- The PDF path is tested with stand-ins for Unstructured. The FAA corpus checksums were verified on 2026-10-30; indexing those PDFs was not run, because the NLTK data was not available offline in the environment used, and no evaluation on the PDF corpus is recorded.
+- The PDF path is tested with stand-ins for Unstructured. The FAA corpus checksums were verified on 2026-10-30. Indexing those PDFs was not run: Unstructured 0.27.35 routes all three to `hi_res`, and its layout model was not downloaded in the environment used. No evaluation on the PDF corpus is recorded.
 - The golden set has 15 questions over 3 synthetic manuals. It detects regressions; it does not estimate accuracy on real manuals.
 
 ## License

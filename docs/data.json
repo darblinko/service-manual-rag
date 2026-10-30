@@ -2,7 +2,8 @@
   "meta": {
     "repo": "service-manual-rag",
     "revision": "189760b",
-    "measured": "2026-10-30"
+    "measured": "2026-10-30",
+    "hosted_revision": "a2f53c1"
   },
   "charts": [
     {
@@ -105,6 +106,63 @@
         {
           "label": "troubleshooting",
           "value": 0.0
+        }
+      ]
+    },
+    {
+      "name": "hosted-by-mode",
+      "type": "columns",
+      "title": "Hosted evaluation by retrieval mode, mean over the golden set",
+      "subtitle": "15 questions, one run on 2026-10-30; gpt-4.1-mini answers and LLM judge, text-embedding-3-large",
+      "source": "results/hosted-2026-10-30.json (runs.vector.aggregate, runs.graph.aggregate, runs.fused.aggregate)",
+      "format": "percent",
+      "max": 1,
+      "alt": "vector: section hit 100%, recip. rank 92%, model prec. 71%, context rel. 90%, answer rel. 100%, faithfulness 87%, correctness 99%; graph: section hit 0%, recip. rank 0%, model prec. 0%, context rel. 55%, answer rel. 91%, faithfulness 100%, correctness 35%; fused: section hit 100%, recip. rank 92%, model prec. 71%, context rel. 90%, answer rel. 100%, faithfulness 87%, correctness 96%.",
+      "categories": [
+        "section hit",
+        "recip. rank",
+        "model prec.",
+        "context rel.",
+        "answer rel.",
+        "faithfulness",
+        "correctness"
+      ],
+      "series": [
+        {
+          "name": "vector",
+          "values": [
+            1.0,
+            0.9222,
+            0.7067,
+            0.9,
+            1.0,
+            0.8667,
+            0.9867
+          ]
+        },
+        {
+          "name": "graph",
+          "values": [
+            0.0,
+            0.0,
+            0.0,
+            0.5533,
+            0.9067,
+            1.0,
+            0.3467
+          ]
+        },
+        {
+          "name": "fused",
+          "values": [
+            1.0,
+            0.9222,
+            0.7067,
+            0.9,
+            1.0,
+            0.8667,
+            0.96
+          ]
         }
       ]
     }
