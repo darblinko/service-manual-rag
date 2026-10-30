@@ -62,7 +62,10 @@ class Settings(BaseSettings):
     neo4j_password: str | None = Field(default=None)
     neo4j_database: str = Field(default="neo4j")
 
-    # Document processing
+    # Document processing. PDF_STRATEGY is the Unstructured partition strategy: hi_res
+    # runs a layout model (downloaded on first use) and infers table structure; fast
+    # reads the PDF text layer only.
+    pdf_strategy: Literal["hi_res", "fast", "ocr_only", "auto"] = Field(default="hi_res")
     chunk_size_tokens: int = Field(default=500)
     chunk_overlap_tokens: int = Field(default=50)
     min_chunk_size_tokens: int = Field(default=100)

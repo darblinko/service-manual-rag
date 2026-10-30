@@ -32,7 +32,7 @@ class ProcessingPipeline:
         text_parser: MarkdownParser | None = None,
         chunker: HierarchicalChunker | None = None,
     ):
-        self.pdf_parser = pdf_parser or PDFParser(strategy="hi_res")
+        self.pdf_parser = pdf_parser or PDFParser(strategy=get_settings().pdf_strategy)
         self.text_parser = text_parser or MarkdownParser()
         self.chunker = chunker or default_chunker()
 

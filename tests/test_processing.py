@@ -3,6 +3,7 @@ import types
 
 import pytest
 
+from service_manual_rag.config import get_settings
 from service_manual_rag.processing import (
     ChunkLevel,
     HierarchicalChunker,
@@ -181,3 +182,12 @@ def test_pdf_parser_rejects_a_pdf_with_no_extracted_text(monkeypatch, tmp_path):
 
     with pytest.raises(ValueError, match="No text was extracted from scanned.pdf"):
         PDFParser(strategy="fast").parse(pdf)
+
+
+def test_pipeline_takes_the_pdf_strategy_from_the_environment(monkeypatch):
+    assert ProcessingPipeline().pdf_parser.strategy == "hi_res"
+
+    monkeypatch.setenv("PDF_STRATEGY", "fast")
+    get_settings.cache_clear()
+
+    assert ProcessingPipeline().pdf_parser.strategy == "fast"
